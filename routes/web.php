@@ -27,9 +27,11 @@ Route::get('attendance', [DeviceController::class, 'Attendance'])->name('devices
 Route::get('/iclock/cdata', [iclockController::class, 'handshake']);
 // request dari device
 Route::post('/iclock/cdata', [iclockController::class, 'receiveRecords']);
+//COMMANDS
+Route::any('/iclock/devicecmd', [iclockController::class, 'deviceCmdResponse']);
 
 Route::get('/iclock/test', [iclockController::class, 'test']);
-Route::get('/iclock/getrequest', [iclockController::class, 'getrequest']);
+Route::any('/iclock/getrequest', [iclockController::class, 'getrequest']);
 
 
 
