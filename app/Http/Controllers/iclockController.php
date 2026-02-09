@@ -75,95 +75,99 @@ class iclockController extends Controller
     // ============================
     //  RECEPCIÓN DE REGISTROS
     // ============================
-    public function receiveRecords(Request $request)
-    {
-        $content['url'] = json_encode($request->all());
-        $content['data'] = $request->getContent();
-        DB::table('finger_log')->insert($content);
+public function receiveRecords(Request $request)
+{
+    // Guardar crudo para debugging
+    DB::table('finger_log')->insert([
+        'url'  => json_encode($request->all()),
+        'data' => $request->getContent(),
+    ]);
 
-        try {
-            $arr = preg_split('/\\r\\n|\\r|,|\\n/', $request->getContent());
-            $tot = 0;
+    try {
+        $raw = trim($request->getContent());
 
-            // if ($request->input('table') == "OPERLOG") {
-            //     foreach ($arr as $rey) {
-            //         if (isset($rey)) {
-            //             $tot++;
-            //         }
-            //     }
-            //     return "OK: " . $tot;
-            // }
-            $clean = [];
-            $buffer = '';
+        // Primero detectamos si hay huellas (FP ...)
+        $lines = preg_split('/\r\n|\r|\n/', $raw);
+        $clean = [];
+        $buffer = '';
 
-            foreach ($arr as $line) {
-                if (str_starts_with(trim($line), 'FP')) {
-                    // Si había un buffer previo, lo guardamos
-                    if ($buffer !== '') {
-                        $clean[] = $buffer;
-                    }
-                    $buffer = $line;
-                } else {
-                    // Continuación de TMP
-                    $buffer .= $line;
+        foreach ($lines as $line) {
+            $trim = trim($line);
+
+            // Inicio de una huella
+            if (str_starts_with($trim, 'FP')) {
+                if ($buffer !== '') {
+                    $clean[] = $buffer;
+                }
+                $buffer = $trim;
+            } else {
+                // Continuación de TMP
+                if ($buffer !== '') {
+                    $buffer .= $trim;
                 }
             }
+        }
 
-            // Última línea
-            if ($buffer !== '') {
-                $clean[] = $buffer;
+        if ($buffer !== '') {
+            $clean[] = $buffer;
+        }
+
+        $tot = 0;
+
+        // Procesar huellas primero
+        foreach ($clean as $fpLine) {
+            if (!str_starts_with(trim($fpLine), 'FP')) {
+                continue;
             }
 
-            foreach ($clean as $rey) {
-                if (str_starts_with(trim($rey), 'FP')) {
+            preg_match('/PIN=(\d+)/', $fpLine, $pin);
+            preg_match('/FID=(\d+)/', $fpLine, $fid);
+            preg_match('/Size=(\d+)/', $fpLine, $size);
+            preg_match('/Valid=(\d+)/', $fpLine, $valid);
+            preg_match('/TMP=([\s\S]+)/', $fpLine, $tmp);
 
-                    preg_match('/PIN=(\d+)/', $rey, $pin);
-                    preg_match('/FID=(\d+)/', $rey, $fid);
-                    preg_match('/Size=(\d+)/', $rey, $size);
-                    preg_match('/Valid=(\d+)/', $rey, $valid);
-                    preg_match('/TMP=([\s\S]+)/', $rey, $tmp);
+            $template = trim($tmp[1] ?? '');
 
-                    $template = trim($tmp[1] ?? '');
+            DB::table('fingerprints')->updateOrInsert(
+                [
+                    'pin' => $pin[1] ?? null,
+                    'fid' => $fid[1] ?? null,
+                ],
+                [
+                    'size'       => $size[1] ?? 0,
+                    'valid'      => $valid[1] ?? 0,
+                    'template'   => $template,
+                    'updated_at' => now(),
+                ]
+            );
 
-                    DB::table('fingerprints')->updateOrInsert(
-                        [
-                            'pin' => $pin[1] ?? null,
-                            'fid' => $fid[1] ?? null,
-                        ],
-                        [
-                            'size' => $size[1] ?? 0,
-                            'valid' => $valid[1] ?? 0,
-                            'template' => $template,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]
-                    );
+            $tot++;
+        }
 
-                    continue;
-                }
-                if (empty($rey)) continue;
+        // Ahora procesamos ATTLOG
+        // Si no hay tabs ni saltos → viene todo en una sola línea
+        if (!str_contains($raw, "\t") && !str_contains($raw, "\n")) {
 
-                $data = explode("\t", $rey);
+            // Separar por espacios múltiples
+            $tokens = preg_split('/\s+/', $raw);
 
-                $q['sn'] = $request->input('SN');
-                $q['table'] = $request->input('table');
-                $q['stamp'] = $request->input('Stamp');
+            // Cada registro ATTLOG tiene 10 campos
+            $records = array_chunk($tokens, 10);
+
+            foreach ($records as $data) {
+                if (count($data) < 3) continue;
+
+                $q['sn']         = $request->input('SN');
+                $q['table']      = $request->input('table');
+                $q['stamp']      = $request->input('Stamp');
                 $q['employee_id'] = $data[0];
-                $q['timestamp'] = $data[1];
+                $q['timestamp']   = $data[1] . ' ' . $data[2];
 
-                if (count($data) > 7) {
-                    $q['status1'] = $this->validateAndFormatInteger($data[3] ?? null);
-                    $q['status2'] = $this->validateAndFormatInteger($data[4] ?? null);
-                    $q['status3'] = $this->validateAndFormatInteger($data[5] ?? null);
-                    $q['status4'] = $this->validateAndFormatInteger($data[6] ?? null);
-                    $q['status5'] = $this->validateAndFormatInteger($data[7] ?? null);
-                } else {
-                    $q['status1'] = $this->validateAndFormatInteger($data[2] ?? null);
-                    $q['status2'] = $this->validateAndFormatInteger($data[3] ?? null);
-                    $q['status3'] = $this->validateAndFormatInteger($data[4] ?? null);
-                    $q['status4'] = $this->validateAndFormatInteger($data[5] ?? null);
-                    $q['status5'] = $this->validateAndFormatInteger($data[6] ?? null);
-                }
+                $q['status1'] = $this->validateAndFormatInteger($data[3] ?? null);
+                $q['status2'] = $this->validateAndFormatInteger($data[4] ?? null);
+                $q['status3'] = $this->validateAndFormatInteger($data[5] ?? null);
+                $q['status4'] = $this->validateAndFormatInteger($data[6] ?? null);
+                $q['status5'] = $this->validateAndFormatInteger($data[7] ?? null);
 
                 $q['created_at'] = now();
                 $q['updated_at'] = now();
@@ -173,14 +177,47 @@ class iclockController extends Controller
             }
 
             return "OK: " . $tot;
-
-        } catch (\Throwable $e) {
-            $data['error'] = $e;
-            DB::table('error_log')->insert($data);
-            report($e);
-            return "ERROR: " . $tot . "\n";
         }
+
+        // Si viene en formato normal (con tabs)
+        $rows = preg_split('/\r\n|\r|\n/', $raw);
+
+        foreach ($rows as $row) {
+            if (empty(trim($row))) continue;
+            if (str_starts_with(trim($row), 'FP')) continue;
+
+            $data = explode("\t", $row);
+            if (count($data) < 2) continue;
+
+            $q['sn']         = $request->input('SN');
+            $q['table']      = $request->input('table');
+            $q['stamp']      = $request->input('Stamp');
+            $q['employee_id'] = $data[0];
+            $q['timestamp']   = $data[1];
+
+            if (count($data) > 7) {
+                $q['status1'] = $this->validateAndFormatInteger($data[3] ?? null);
+                $q['status2'] = $this->validateAndFormatInteger($data[4] ?? null);
+                $q['status3'] = $this->validateAndFormatInteger($data[5] ?? null);
+                $q['status4'] = $this->validateAndFormatInteger($data[6] ?? null);
+                $q['status5'] = $this->validateAndFormatInteger($data[7] ?? null);
+            }
+
+            $q['created_at'] = now();
+            $q['updated_at'] = now();
+
+            DB::table('attendances')->insert($q);
+            $tot++;
+        }
+
+        return "OK: " . $tot;
+
+    } catch (\Throwable $e) {
+        DB::table('error_log')->insert(['error' => $e->getMessage()]);
+        report($e);
+        return "ERROR";
     }
+}
 
     public function test(Request $request)
     {
