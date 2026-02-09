@@ -40,7 +40,6 @@ Route::any('/iclock/getrequest', [iclockController::class, 'getrequest']);
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
-Route::get('/new'), []
 
 Route::get('/', function () {
     return redirect('devices') ;
