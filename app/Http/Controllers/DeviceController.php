@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Device;
 use App\Models\Attendance;
 use DB;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class DeviceController extends Controller
 {
@@ -32,12 +33,31 @@ class DeviceController extends Controller
         $data['log'] = DB::table('finger_log')->select('id','data','url')->orderBy('id','DESC')->get();
         return view('devices.log',$data);
     }
-    public function Attendance() {
-       //$attendances = Attendance::latest('timestamp')->orderBy('id','DESC')->paginate(15);
-       $attendances = DB::table('attendances')->select('id','sn','table','stamp','employee_id','timestamp','status1','status2','status3','status4','status5')->orderBy('id','DESC')->paginate(15);
+    public function Attendance()
+    {
+        $perPage = 15;
+        $page = (int) request()->get('page', 1);
+        $start = ($page - 1) * $perPage;
+        $end = $start + $perPage;
+
+        $sql = "SELECT id,sn,[table],stamp,employee_id,timestamp,status1,status2,status3,status4,status5
+                FROM (
+                  SELECT id,sn,[table],stamp,employee_id,timestamp,status1,status2,status3,status4,status5,
+                         ROW_NUMBER() OVER (ORDER BY id DESC) AS rn
+                  FROM attendances
+                ) AS t
+                WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+
+        $rows = DB::select($sql, [$start + 1, $end]);
+
+        $total = DB::table('attendances')->count();
+
+        $attendances = new LengthAwarePaginator($rows, $total, $perPage, $page, [
+            'path' => request()->url(),
+            'query' => request()->query(),
+        ]);
 
         return view('devices.attendance', compact('attendances'));
-        
     }
 
     // // Menampilkan form tambah device
