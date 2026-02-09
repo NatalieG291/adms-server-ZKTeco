@@ -77,7 +77,6 @@ class iclockController extends Controller
     // ============================
 public function receiveRecords(Request $request)
 {
-    // Guardar crudo para debugging
     DB::table('finger_log')->insert([
         'url'  => json_encode($request->all()),
         'data' => $request->getContent(),
@@ -86,7 +85,6 @@ public function receiveRecords(Request $request)
     try {
         $raw = trim($request->getContent());
 
-        // Primero detectamos si hay huellas (FP ...)
         $lines = preg_split('/\r\n|\r|\n/', $raw);
         $clean = [];
         $buffer = '';
@@ -94,14 +92,12 @@ public function receiveRecords(Request $request)
         foreach ($lines as $line) {
             $trim = trim($line);
 
-            // Inicio de una huella
             if (str_starts_with($trim, 'FP')) {
                 if ($buffer !== '') {
                     $clean[] = $buffer;
                 }
                 $buffer = $trim;
             } else {
-                // Continuación de TMP
                 if ($buffer !== '') {
                     $buffer .= $trim;
                 }
@@ -114,7 +110,6 @@ public function receiveRecords(Request $request)
 
         $tot = 0;
 
-        // Procesar huellas primero
         foreach ($clean as $fpLine) {
             if (!str_starts_with(trim($fpLine), 'FP')) {
                 continue;
@@ -144,14 +139,9 @@ public function receiveRecords(Request $request)
             $tot++;
         }
 
-        // Ahora procesamos ATTLOG
-        // Si no hay tabs ni saltos → viene todo en una sola línea
         if (!str_contains($raw, "\t") && !str_contains($raw, "\n")) {
 
-            // Separar por espacios múltiples
             $tokens = preg_split('/\s+/', $raw);
-
-            // Cada registro ATTLOG tiene 10 campos
             $records = array_chunk($tokens, 10);
 
             foreach ($records as $data) {
@@ -179,7 +169,6 @@ public function receiveRecords(Request $request)
             return "OK: " . $tot;
         }
 
-        // Si viene en formato normal (con tabs)
         $rows = preg_split('/\r\n|\r|\n/', $raw);
 
         foreach ($rows as $row) {
