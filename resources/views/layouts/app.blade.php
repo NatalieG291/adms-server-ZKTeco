@@ -89,5 +89,83 @@
             });
         });
     </script>
+    <script>
+        function RestartDevice(sn) {
+            if (!confirm('Restart device with ID ' + sn + '?')) return;
+
+            fetch("{{ route('devices.restart') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ sn: sn })
+            })
+            .then(function(response){ return response.json(); })
+            .then(function(data){
+                if (data && data.message) {
+                    alert(data.message);
+                } else {
+                    alert('Restart request sent');
+                }
+            })
+            .catch(function(err){
+                console.error(err);
+                alert('Failed to send restart request');
+            });
+        }
+    </script>
+    <script>
+        function ClearAdmin(sn) {
+            if (!confirm('Clear admin with ID ' + sn + '?')) return;
+
+            fetch("{{ route('devices.clear-admin') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ sn: sn })
+            })
+            .then(function(response){ return response.json(); })
+            .then(function(data){
+                if (data && data.message) {
+                    alert(data.message);
+                } else {
+                    alert('Restart request sent');
+                }
+            })
+            .catch(function(err){
+                console.error(err);
+                alert('Failed to send restart request');
+            });
+        }
+    </script>
+    <script>
+        function ClearLog(sn) {
+            if (!confirm('Clear log with ID ' + sn + '?')) return;
+
+            fetch("{{ route('devices.clear-log') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ sn: sn })
+            })
+            .then(function(response){ return response.json(); })
+            .then(function(data){
+                if (data && data.message) {
+                    alert(data.message);
+                } else {
+                    alert('Restart request sent');
+                }
+            })
+            .catch(function(err){
+                console.error(err);
+                alert('Failed to send restart request');
+            });
+        }
+    </script>
 </body>
 </html>

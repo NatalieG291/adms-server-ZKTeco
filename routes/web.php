@@ -21,7 +21,9 @@ Route::get('devices', [DeviceController::class, 'Index'])->name('devices.index')
 Route::get('devices-log', [DeviceController::class, 'DeviceLog'])->name('devices.DeviceLog');
 Route::get('finger-log', [DeviceController::class, 'FingerLog'])->name('devices.FingerLog');
 Route::get('attendance', [DeviceController::class, 'Attendance'])->name('devices.Attendance');
-
+Route::post('devices/restart', [DeviceController::class, 'RestartDevice'])->name('devices.restart');
+Route::post('devices/clear-admin', [DeviceController::class, 'ClearAdmin'])->name('devices.clear-admin');
+Route::post('devices/clear-log', [DeviceController::class, 'ClearLog'])->name('devices.clear-log');
 
 // handshake
 Route::get('/iclock/cdata', [iclockController::class, 'handshake']);

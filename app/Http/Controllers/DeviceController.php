@@ -19,6 +19,39 @@ class DeviceController extends Controller
         return view('devices.index',$data);
     }
 
+    public function RestartDevice(Request $request)
+    {
+        $sn = $request->input('sn');
+        $q['device_id'] = $sn;
+        $q['command'] = 'REBOOT';
+        $q['data'] = '{}';
+        $q['created_at'] = now();
+        DB::table('device_commands')->insert($q);
+        return response()->json(['message' => "Lector enviado para reiniciar"]);
+    }
+
+    public function ClearAdmin(Request $request)
+    {
+        $sn = $request->input('sn');
+        $q['device_id'] = $sn;
+        $q['command'] = 'CLEAR ADMIN';
+        $q['data'] = '{}';
+        $q['created_at'] = now();
+        DB::table('device_commands')->insert($q);
+        return response()->json(['message' => "Lector enviado para limpiar admin"]);
+    }
+
+    public function ClearLog(Request $request)
+    {
+        $sn = $request->input('sn');
+        $q['device_id'] = $sn;
+        $q['command'] = 'CLEAR LOG';
+        $q['data'] = '{}';
+        $q['created_at'] = now();
+        DB::table('device_commands')->insert($q);
+        return response()->json(['message' => "Lector enviado para limpiar log"]);
+    }
+
     public function DeviceLog(Request $request)
     {
         $data['lable'] = "Devices Log";

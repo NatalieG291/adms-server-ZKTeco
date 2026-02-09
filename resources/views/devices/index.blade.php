@@ -10,6 +10,7 @@
                     {{-- <th>No</th> --}}
                     <th>Serial Number</th>
                     <th>Online</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -18,6 +19,11 @@
                         {{-- <td>{{ $d->id }}</td> --}}
                         <td>{{ $d->no_sn }}</td>
                         <td>{{ $d->online }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="RestartDevice('{{ $d->id }}')">Restart</button>
+                            <button class="btn btn-sm btn-danger" onclick="ClearAdmin('{{ $d->id }}')">Clear admin</button>
+                            <button class="btn btn-sm btn-secondary" onclick="ClearLog('{{ $d->id }}')">Clear log</button>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
@@ -25,3 +31,32 @@
 
     </div>
 @endsection
+
+<!-- @push('scripts')
+<script>
+    function RestartDevice(sn) {
+        if (!confirm('Restart device with ID ' + sn + '?')) return;
+
+        fetch("{{ route('devices.restart') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ sn: sn })
+        })
+        .then(function(response){ return response.json(); })
+        .then(function(data){
+            if (data && data.message) {
+                alert(data.message);
+            } else {
+                alert('Restart request sent');
+            }
+        })
+        .catch(function(err){
+            console.error(err);
+            alert('Failed to send restart request');
+        });
+    }
+</script>
+@endpush -->
