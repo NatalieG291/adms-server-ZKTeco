@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container">
-        <h2>{{ $lable }}</h2>
+        <h2>Device log1</h2>
         <table class="table table-bordered data-table" id="devices">
             <thead>
                 <tr>
@@ -12,7 +12,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($log as $d)
+                @foreach ($logs as $d)
                     <tr>
                         <td>{{ $d->id }}</td>
                         <td>{{ $d->url }}</td>
@@ -21,6 +21,8 @@
                 @endforeach
             </tbody>
         </table>
-
+    <div class="d-felx justify-content-center">
+        {{ $logs->links() }}  {{-- Tampilkan pagination jika ada --}}
+    </div>
     </div>
 @endsection

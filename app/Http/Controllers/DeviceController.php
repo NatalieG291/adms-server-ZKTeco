@@ -54,17 +54,48 @@ class DeviceController extends Controller
 
     public function DeviceLog(Request $request)
     {
-        $data['lable'] = "Devices Log";
-        $data['log'] = DB::table('device_log')->select('id','data','url')->orderBy('id','DESC')->get();
+        $perPage = 15;
+        $page = (int) request()->get('page', 1);
+        $start = ($page - 1) * $perPage;
+        $end = $start + $perPage;
+
+        $sql = "SELECT id,data,url
+                FROM (
+                  SELECT id,data,url,
+                         ROW_NUMBER() OVER (ORDER BY id DESC) AS rn
+                  FROM device_log
+                ) AS t
+                WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+        $rows = DB::select($sql, [$start + 1, $end]);
+        $total = DB::table('device_log')->count();
+        $logs = new LengthAwarePaginator($rows, $total, $perPage, $page, [
+            'path' => request()->url(),
+            'query' => request()->query(),
+        ]);
         
-        return view('devices.log',$data);
+        return view('devices.log',compact('logs'));
     }
     
     public function FingerLog(Request $request)
     {
-        $data['lable'] = "Finger Log";
-        $data['log'] = DB::table('finger_log')->select('id','data','url')->orderBy('id','DESC')->get();
-        return view('devices.log',$data);
+        $perPage = 15;
+        $page = (int) request()->get('page', 1);
+        $start = ($page - 1) * $perPage;
+        $end = $start + $perPage;   
+        $sql = "SELECT id,url, data
+                FROM (
+                  SELECT id,url, data,
+                         ROW_NUMBER() OVER (ORDER BY id DESC) AS rn
+                  FROM finger_log
+                ) AS t
+                WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+        $rows = DB::select($sql, [$start + 1, $end]);
+        $total = DB::table('finger_log')->count();
+        $logs = new LengthAwarePaginator($rows, $total, $perPage, $page, [
+            'path' => request()->url(),
+            'query' => request()->query(),
+        ]);
+        return view('devices.finger',compact('logs'));
     }
     public function Attendance()
     {
