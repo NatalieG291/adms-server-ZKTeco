@@ -147,10 +147,7 @@ public function receiveRecords(Request $request)
         
         if (!str_contains($raw, "\t") && !str_contains($raw, "\n")) {
 
-            // Separar por espacios múltiples
             $tokens = preg_split('/\s+/', $raw);
-
-            // Cada registro ATTLOG tiene 10 campos
             $records = array_chunk($tokens, 10);
 
             foreach ($records as $data) {
