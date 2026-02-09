@@ -85,16 +85,62 @@ class iclockController extends Controller
             $arr = preg_split('/\\r\\n|\\r|,|\\n/', $request->getContent());
             $tot = 0;
 
-            if ($request->input('table') == "OPERLOG") {
-                foreach ($arr as $rey) {
-                    if (isset($rey)) {
-                        $tot++;
+            // if ($request->input('table') == "OPERLOG") {
+            //     foreach ($arr as $rey) {
+            //         if (isset($rey)) {
+            //             $tot++;
+            //         }
+            //     }
+            //     return "OK: " . $tot;
+            // }
+            $clean = [];
+            $buffer = '';
+
+            foreach ($arr as $line) {
+                if (str_starts_with(trim($line), 'FP')) {
+                    // Si había un buffer previo, lo guardamos
+                    if ($buffer !== '') {
+                        $clean[] = $buffer;
                     }
+                    $buffer = $line;
+                } else {
+                    // Continuación de TMP
+                    $buffer .= $line;
                 }
-                return "OK: " . $tot;
             }
 
-            foreach ($arr as $rey) {
+            // Última línea
+            if ($buffer !== '') {
+                $clean[] = $buffer;
+            }
+
+            foreach ($clean as $rey) {
+                if (str_starts_with(trim($rey), 'FP')) {
+
+                    preg_match('/PIN=(\d+)/', $rey, $pin);
+                    preg_match('/FID=(\d+)/', $rey, $fid);
+                    preg_match('/Size=(\d+)/', $rey, $size);
+                    preg_match('/Valid=(\d+)/', $rey, $valid);
+                    preg_match('/TMP=([\s\S]+)/', $rey, $tmp);
+
+                    $template = trim($tmp[1] ?? '');
+
+                    DB::table('fingerprints')->updateOrInsert(
+                        [
+                            'pin' => $pin[1] ?? null,
+                            'fid' => $fid[1] ?? null,
+                        ],
+                        [
+                            'size' => $size[1] ?? 0,
+                            'valid' => $valid[1] ?? 0,
+                            'template' => $template,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]
+                    );
+
+                    continue;
+                }
                 if (empty($rey)) continue;
 
                 $data = explode("\t", $rey);
