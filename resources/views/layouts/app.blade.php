@@ -63,6 +63,16 @@
             <span class="navbar-text d-none d-lg-block">
                 {{ now() }}
             </span>
+
+            <ul class="navbar-nav ms-3">
+                @auth
+                    <li class="nav-item">
+                        <form method="POST" action="{{ url('/logout') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-primary">Logout</button>
+                        </form>
+                    </li>
+                @endauth
         </div>
     </nav>
 

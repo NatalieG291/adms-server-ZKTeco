@@ -77,6 +77,7 @@ class iclockController extends Controller
     // ============================
 public function receiveRecords(Request $request)
 {
+    
     DB::table('finger_log')->insert([
         'url'  => json_encode($request->all()),
         'data' => $request->getContent(),
@@ -85,6 +86,7 @@ public function receiveRecords(Request $request)
     try {
         $raw = trim($request->getContent());
 
+        
         $lines = preg_split('/\r\n|\r|\n/', $raw);
         $clean = [];
         $buffer = '';
@@ -92,12 +94,14 @@ public function receiveRecords(Request $request)
         foreach ($lines as $line) {
             $trim = trim($line);
 
+            
             if (str_starts_with($trim, 'FP')) {
                 if ($buffer !== '') {
                     $clean[] = $buffer;
                 }
                 $buffer = $trim;
             } else {
+                
                 if ($buffer !== '') {
                     $buffer .= $trim;
                 }
@@ -110,6 +114,7 @@ public function receiveRecords(Request $request)
 
         $tot = 0;
 
+        
         foreach ($clean as $fpLine) {
             if (!str_starts_with(trim($fpLine), 'FP')) {
                 continue;
@@ -139,6 +144,7 @@ public function receiveRecords(Request $request)
             $tot++;
         }
 
+        
         if (!str_contains($raw, "\t") && !str_contains($raw, "\n")) {
 
             $tokens = preg_split('/\s+/', $raw);
@@ -169,6 +175,7 @@ public function receiveRecords(Request $request)
             return "OK: " . $tot;
         }
 
+        
         $rows = preg_split('/\r\n|\r|\n/', $raw);
 
         foreach ($rows as $row) {

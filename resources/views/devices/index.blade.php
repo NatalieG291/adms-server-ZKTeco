@@ -10,7 +10,9 @@
                     {{-- <th>No</th> --}}
                     <th>Serial Number</th>
                     <th>Online</th>
+                    @auth
                     <th>Action</th>
+                    @endauth
                 </tr>
             </thead>
             <tbody>
@@ -19,11 +21,13 @@
                         {{-- <td>{{ $d->id }}</td> --}}
                         <td>{{ $d->no_sn }}</td>
                         <td>{{ $d->online }}</td>
+                        @auth
                         <td>
                             <button class="btn btn-sm btn-warning" onclick="RestartDevice('{{ $d->id }}')">Restart</button>
                             <button class="btn btn-sm btn-danger" onclick="ClearAdmin('{{ $d->id }}')">Clear admin</button>
                             <button class="btn btn-sm btn-secondary" onclick="ClearLog('{{ $d->id }}')">Clear log</button>
                         </td>
+                        @endauth
                     </tr>
                 @endforeach
             </tbody>
