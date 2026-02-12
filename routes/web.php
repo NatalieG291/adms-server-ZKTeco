@@ -25,6 +25,7 @@ Route::get('attendance', [DeviceController::class, 'Attendance'])->name('devices
 Route::post('devices/restart', [DeviceController::class, 'RestartDevice'])->name('devices.restart')->middleware('auth');
 Route::post('devices/clear-admin', [DeviceController::class, 'ClearAdmin'])->name('devices.clear-admin')->middleware('auth');
 Route::post('devices/clear-log', [DeviceController::class, 'ClearLog'])->name('devices.clear-log')->middleware('auth');
+Route::get('/attlog', [App\Http\Controllers\AttlogController::class, 'index']);
 
 // handshake
 Route::get('/iclock/cdata', [iclockController::class, 'handshake']);
