@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-     Schema::create('attendances', function (Blueprint $table) {
+     Schema::create('attlog', function (Blueprint $table) {
             $table->id();
             $table->string('sn');
             $table->string('table');
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('attendances');
+        Schema::dropIfExists('attlog');
     }
 };

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use dateTime;
+use Iluminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class iclockController extends Controller
 {
@@ -153,22 +156,49 @@ public function receiveRecords(Request $request)
             foreach ($records as $data) {
                 if (count($data) < 3) continue;
 
-                $q['sn']         = $request->input('SN');
-                $q['table']      = $request->input('table');
-                $q['stamp']      = $request->input('Stamp');
-                $q['employee_id'] = $data[0];
-                $q['timestamp']   = $data[1] . ' ' . $data[2];
+                if(!str_contains($data[0], 'OPLOG') && !str_contains($data[0], '~DeviceName')) {
 
-                $q['status1'] = $this->validateAndFormatInteger($data[3] ?? null);
-                $q['status2'] = $this->validateAndFormatInteger($data[4] ?? null);
-                $q['status3'] = $this->validateAndFormatInteger($data[5] ?? null);
-                $q['status4'] = $this->validateAndFormatInteger($data[6] ?? null);
-                $q['status5'] = $this->validateAndFormatInteger($data[7] ?? null);
+                    $lector = DB::connection('giro')
+                        ->table('Supervisor_giro.Lectores_adms')
+                        ->where('NUMERO_SERIE', '=', $request->input('SN'))
+                        ->get();
 
-                $q['created_at'] = now();
-                $q['updated_at'] = now();
+                    if ($lector->isEmpty()) {
+                        $g = DB::connection('giro')
+                            ->table('Supervisor_giro.Lectores_adms')
+                            ->insert([
+                                'NUMERO_SERIE' => $request->input('SN'),
+                                'DESCRIPCION'  => 'Lector desde iclockController',
+                            ]);
+                    }
+                    
+                    DB::connection('giro')
+                        ->table('Supervisor_giro.BitacoraRegistros')
+                        ->insert([
+                            'CLAVE' => $data[0],
+                            'FECHA' => $data[1] . ' ' . $data[2],
+                            'FECHA_LECTURA' => now(),
+                            'LECTOR' => $request->input('SN'),
+                            'REGISTRADO' => null,
+                        ]);
 
-                DB::table('attendances')->insert($q);
+                    $q['sn']         = $request->input('SN');
+                    $q['table']      = $request->input('table');
+                    $q['stamp']      = $request->input('Stamp');
+                    $q['employee_id'] = $data[0];
+                    $q['timestamp']   = $data[1] . ' ' . $data[2];
+
+                    $q['status1'] = $this->validateAndFormatInteger($data[3] ?? null);
+                    $q['status2'] = $this->validateAndFormatInteger($data[4] ?? null);
+                    $q['status3'] = $this->validateAndFormatInteger($data[5] ?? null);
+                    $q['status4'] = $this->validateAndFormatInteger($data[6] ?? null);
+                    $q['status5'] = $this->validateAndFormatInteger($data[7] ?? null);
+
+                    $q['created_at'] = now();
+                    $q['updated_at'] = now();
+
+                    DB::table('attendances')->insert($q);
+                }
                 $tot++;
             }
 
@@ -185,31 +215,58 @@ public function receiveRecords(Request $request)
             $data = explode("\t", $row);
             if (count($data) < 2) continue;
 
-            $q['sn']         = $request->input('SN');
-            $q['table']      = $request->input('table');
-            $q['stamp']      = $request->input('Stamp');
-            $q['employee_id'] = $data[0];
-            $q['timestamp']   = $data[1];
+                if(!str_contains($data[0], 'OPLOG') && !str_contains($data[0], '~DeviceName')) {
+                    $lector = DB::connection('giro')
+                        ->table('Supervisor_giro.Lectores_adms')
+                        ->where('NUMERO_SERIE', '=', $request->input('SN'))
+                        ->get();
 
-            if (count($data) > 7) {
-                $q['status1'] = $this->validateAndFormatInteger($data[3] ?? null);
-                $q['status2'] = $this->validateAndFormatInteger($data[4] ?? null);
-                $q['status3'] = $this->validateAndFormatInteger($data[5] ?? null);
-                $q['status4'] = $this->validateAndFormatInteger($data[6] ?? null);
-                $q['status5'] = $this->validateAndFormatInteger($data[7] ?? null);
-            }
+                    if ($lector->isEmpty()) {
+                        $g = DB::connection('giro')
+                            ->table('Supervisor_giro.Lectores_adms')
+                            ->insert([
+                                'NUMERO_SERIE' => $request->input('SN'),
+                                'DESCRIPCION'  => 'Lector desde iclockController',
+                            ]);
+                    }
+                    
+                    DB::connection('giro')
+                        ->table('Supervisor_giro.BitacoraRegistros')
+                        ->insert([
+                            'CLAVE' => $data[0],
+                            'FECHA' => $data[1],
+                            'FECHA_LECTURA' => now(),
+                            'LECTOR' => $lector[0]->CLAVE,
+                            'REGISTRADO' => null,
+                        ]);
+                    $q['sn']         = $request->input('SN');
+                    $q['table']      = $request->input('table');
+                    $q['stamp']      = $request->input('Stamp') ?? 99;
+                    $q['employee_id'] = $data[0];
+                    $q['timestamp']   = $data[1];
 
-            $q['created_at'] = now();
-            $q['updated_at'] = now();
+                    if (count($data) > 7) {
+                        $q['status1'] = $this->validateAndFormatInteger($data[3] ?? null);
+                        $q['status2'] = $this->validateAndFormatInteger($data[4] ?? null);
+                        $q['status3'] = $this->validateAndFormatInteger($data[5] ?? null);
+                        $q['status4'] = $this->validateAndFormatInteger($data[6] ?? null);
+                        $q['status5'] = $this->validateAndFormatInteger($data[7] ?? null);
+                    }
 
-            DB::table('attendances')->insert($q);
+                    $q['created_at'] = now();
+                    $q['updated_at'] = now();
+
+                    DB::table('attendances')->insert($q);
+              }
+
+
             $tot++;
         }
 
         return "OK: " . $tot;
 
     } catch (\Throwable $e) {
-        DB::table('error_log')->insert(['error' => $e->getMessage()]);
+        DB::table('error_log')->insert(['data' => $e->getMessage()]);
         report($e);
         return "ERROR";
     }
