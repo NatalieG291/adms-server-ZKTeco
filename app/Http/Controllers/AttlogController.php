@@ -35,10 +35,14 @@ class AttlogController extends Controller
                 // Validar que tenga al menos 3 columnas
                 if (count($cols) < 3) continue;
 
-                $attendances = DB::table('attendances')
-                    ->where('employee_id', '=', $cols[0])
-                    ->where('timestamp', '=', new DateTime($cols[1].' '.$cols[2]))
-                    ->get();
+                try{
+                    $attendances = DB::table('attendances')
+                        ->where('employee_id', '=', $cols[0])
+                        ->where('timestamp', '=', new DateTime($cols[1].' '.$cols[2]))
+                        ->get();
+                } catch (\Exception $e) {
+                    continue; // Si hay un error al convertir la fecha, saltar este registro
+                }
 
                 
                 if($attendances->isEmpty()) {
