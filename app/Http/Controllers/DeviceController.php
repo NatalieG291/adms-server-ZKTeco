@@ -124,6 +124,29 @@ class DeviceController extends Controller
         return view('devices.attendance', compact('attendances'));
     }
 
+    public function attphoto()
+    {
+        $perPage = 15;
+        $page = (int) request()->get('page', 1);
+        $start = ($page - 1) * $perPage;
+        $end = $start + $perPage;
+        
+        $sql = "SELECT id,employee_id,timestamp,filename,size,sn
+                FROM (
+                  SELECT id,employee_id,timestamp,filename,size,sn,
+                         ROW_NUMBER() OVER (ORDER BY timestamp DESC) AS rn
+                  FROM attphoto
+                ) AS t
+                WHERE rn BETWEEN ? AND ? ORDER BY timestamp DESC";
+        $rows = DB::select($sql, [$start + 1, $end]);
+        $total = DB::table('attphoto')->count();
+        $photos = new LengthAwarePaginator($rows, $total, $perPage, $page, [
+            'path' => request()->url(),
+            'query' => request()->query(),
+        ]);
+        return view('devices.attphoto', compact('photos'));
+    }
+
     // // Menampilkan form tambah device
     // public function create()
     // {
