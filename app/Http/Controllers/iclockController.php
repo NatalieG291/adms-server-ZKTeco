@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use dateTime;
 use Iluminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class iclockController extends Controller
 {
@@ -270,6 +271,46 @@ public function receiveRecords(Request $request)
         report($e);
         return "ERROR";
     }
+}
+
+/////////////////////////////////
+// RECEPCIÓN DE FOTOS
+/////////////////////////////////
+
+public function fdata(Request $request)
+{
+    $raw = file_get_contents("php://input");
+
+    // Detectar si es una foto
+    if (strpos($raw, 'CMD=uploadphoto') !== false) {
+
+        preg_match('/PIN=(.+\.jpg)/', $raw, $m1);
+        preg_match('/size=(\d+)/', $raw, $m2);
+
+        $employee_id = substr($m1[1] ?? '', strpos($m1[1],'-') + 1, 10); 
+        $employee_id = substr($employee_id, 0, strpos($employee_id, '.'));
+
+        $filename = $m1[1] ?? ('foto_' . time() . '.jpg');
+        $size = intval($m2[1] ?? 0);
+
+        $jpegStart = strpos($raw, "\xFF\xD8");
+        $jpeg = $jpeg = substr($raw, $jpegStart);
+
+        Storage::disk('public')->put("attphoto/$filename", $jpeg);
+
+        DB::table('attphoto')->insert([
+            'employee_id' => $employee_id,
+            'timestamp' => now(),
+            'filename' => $filename,
+            'size' => $size,
+            'sn' => $request->SN,
+            'created_at' => now()
+        ]);
+
+        return "OK";
+    }
+
+    return "OK";
 }
 
     public function test(Request $request)

@@ -22,6 +22,7 @@ Route::get('devices', [DeviceController::class, 'Index'])->name('devices.index')
 Route::get('devices-log', [DeviceController::class, 'DeviceLog'])->name('devices.DeviceLog')->middleware('auth');
 Route::get('finger-log', [DeviceController::class, 'FingerLog'])->name('devices.FingerLog')->middleware('auth');
 Route::get('attendance', [DeviceController::class, 'Attendance'])->name('devices.Attendance')->middleware('auth');
+route::get('attphoto', [DeviceController::class, 'AttPhoto'])->name('devices.AttPhoto')->middleware('auth');
 Route::post('devices/restart', [DeviceController::class, 'RestartDevice'])->name('devices.restart')->middleware('auth');
 Route::post('devices/clear-admin', [DeviceController::class, 'ClearAdmin'])->name('devices.clear-admin')->middleware('auth');
 Route::post('devices/clear-log', [DeviceController::class, 'ClearLog'])->name('devices.clear-log')->middleware('auth');
@@ -31,6 +32,8 @@ Route::get('/attlog', [App\Http\Controllers\AttlogController::class, 'index']);
 Route::get('/iclock/cdata', [iclockController::class, 'handshake']);
 // request dari device
 Route::post('/iclock/cdata', [iclockController::class, 'receiveRecords']);
+// endpoint fotos
+Route::post('/iclock/fdata', [iclockController::class, 'fdata']);
 //COMMANDS
 Route::any('/iclock/devicecmd', [iclockController::class, 'deviceCmdResponse']);
 

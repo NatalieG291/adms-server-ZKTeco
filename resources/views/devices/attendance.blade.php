@@ -47,8 +47,8 @@
     
     <!-- source: https://stackoverflow.com/a/70119390 -->
     <div class="d-felx justify-content-center">
-        {{ $attendances->links() }}  {{-- Tampilkan pagination jika ada --}}
-    </div>
+                {{ $attendances->links() }}  {{-- Tampilkan pagination jika ada --}}
+                    </div>
 
 
 </div>

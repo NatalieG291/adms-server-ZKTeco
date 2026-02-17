@@ -10,7 +10,9 @@ class AttlogController extends Controller
     public function index()
     {
         // 1. Obtener los registros crudos desde finger_log
-        $logs = DB::table('finger_log')->select('id', 'data', 'url')->get();
+        $logs = DB::table('finger_log')->select('id', 'data', 'url')
+            ->where('url', 'like', '%ATTLOG%')
+            ->get();
 
         $attlogs = [];
         $deleted = DB::table('attlog')->delete();
