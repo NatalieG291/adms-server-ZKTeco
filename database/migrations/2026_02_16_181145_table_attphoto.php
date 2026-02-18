@@ -17,6 +17,7 @@ return new class extends Migration
             $table->dateTime('timestamp');
             $table->string('filename');
             $table->integer('size');
+            $table->binary('photo');
             $table->string('sn');
             $table->timestamps();
         });

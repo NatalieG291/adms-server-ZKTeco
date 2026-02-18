@@ -180,5 +180,51 @@
             });
         }
     </script>
+    <script>
+        let currentSN = null;
+
+        function setEnrollSN(sn) {
+            currentSN = sn;
+        }
+    </script>
+    <script>
+        function EnrollEmployee() {
+
+            if (!currentSN) {
+                alert("No device selected");
+                return;
+            }
+
+            const empid = document.getElementById('empid').value;
+            const dedo = document.getElementById('dedo').value;
+
+            if (!empid) {
+                alert('Please enter an employee ID');
+                return;
+            }
+
+            if (!dedo) {
+                alert('Please select a finger');
+                return;
+            }
+
+            if (!confirm('Enroll employee ' + empid + ' with finger ' + dedo + ' on device ' + currentSN + '?')) return;
+
+            fetch("{{ route('devices.enroll') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ sn: currentSN, empid: empid, dedo: dedo })
+            })
+            .then(r => r.json())
+            .then(data => alert(data.message || "Enroll request sent"))
+            .catch(err => {
+                console.error(err);
+                alert('Failed to send enroll request');
+            });
+        }
+    </script>
 </body>
 </html>
