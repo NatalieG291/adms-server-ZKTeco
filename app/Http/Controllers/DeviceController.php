@@ -52,6 +52,19 @@ class DeviceController extends Controller
         return response()->json(['message' => "Lector enviado para limpiar log"]);
     }
 
+    public function EnrollEmployee(Request $request)
+    {
+        $sn = $request->input('sn');
+        $empid = $request->input('empid');
+        $dedo = $request->input('dedo');
+        $q['device_id'] = $sn;
+        $q['command'] = 'ENROLL_FP PIN=' . $empid . "\tFID=" . $dedo . "\tRETRY=3\tOVERWRITE=1";
+        $q['data'] = '{}';
+        $q['created_at'] = now();
+        DB::table('device_commands')->insert($q);
+        return response()->json(['message' => "Lector enviado para enrollar empleado"]);
+    }
+
     public function DeviceLog(Request $request)
     {
         $perPage = 15;

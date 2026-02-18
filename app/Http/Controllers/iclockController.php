@@ -8,6 +8,7 @@ use dateTime;
 use Iluminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\PDO;
 
 class iclockController extends Controller
 {
@@ -81,6 +82,10 @@ class iclockController extends Controller
     // ============================
 public function receiveRecords(Request $request)
 {
+    $a = $request->all();
+    if(str_contains($a['table'], 'ATTPHOTO')) {
+        return $this->fdata($request);
+    }
     
     DB::table('finger_log')->insert([
         'url'  => json_encode($request->all()),
@@ -172,6 +177,14 @@ public function receiveRecords(Request $request)
                                 'DESCRIPCION'  => 'Lector desde iclockController',
                             ]);
                     }
+
+                    if(DB::connection('giro')
+                        ->table('Supervisor_giro.BitacoraRegistros')
+                        ->where('CLAVE', $data[0])
+                        ->where('FECHA', $data[1])
+                        ->exists()) {
+                            continue;
+                    }
                     
                     DB::connection('giro')
                         ->table('Supervisor_giro.BitacoraRegistros')
@@ -231,6 +244,13 @@ public function receiveRecords(Request $request)
                             ]);
                     }
                     
+                    if(DB::connection('giro')
+                        ->table('Supervisor_giro.BitacoraRegistros')
+                        ->where('CLAVE', $data[0])
+                        ->where('FECHA', $data[1])
+                        ->exists()) {
+                            continue;
+                    }
                     DB::connection('giro')
                         ->table('Supervisor_giro.BitacoraRegistros')
                         ->insert([
@@ -267,7 +287,7 @@ public function receiveRecords(Request $request)
         return "OK: " . $tot;
 
     } catch (\Throwable $e) {
-        DB::table('error_log')->insert(['data' => $e->getMessage()]);
+        DB::table('error_log')->insert(['data' => $e->getMessage(), 'created_at' => now(), 'updated_at' => now()]);
         report($e);
         return "ERROR";
     }
@@ -297,15 +317,36 @@ public function fdata(Request $request)
         $jpeg = $jpeg = substr($raw, $jpegStart);
 
         Storage::disk('public')->put("attphoto/$filename", $jpeg);
+    
+        // try {
+        //     $pdo = DB::connection()->getPdo();
 
-        DB::table('attphoto')->insert([
-            'employee_id' => $employee_id,
-            'timestamp' => now(),
-            'filename' => $filename,
-            'size' => $size,
-            'sn' => $request->SN,
-            'created_at' => now()
-        ]);
+        //     $sql = "
+        //         INSERT INTO attphoto (employee_id, timestamp, filename, size, photo, sn, created_at)
+        //         VALUES (?, ?, ?, ?, ?, ?, GETDATE())
+        //     ";
+
+        //     $stmt = $pdo->prepare($sql);
+
+        //     // Convertir JPEG a stream binario
+        //     $stream = fopen('php://memory', 'r+');
+        //     fwrite($stream, $jpeg);
+        //     rewind($stream);
+
+        //     // Bind de parámetros
+        //     $stmt->bindValue(1, $employee_id);
+        //     $stmt->bindValue(2, now());
+        //     $stmt->bindValue(3, $filename);
+        //     $stmt->bindValue(4, strlen($jpeg));
+        //     $stmt->bindValue(5, $stream, PDO::PARAM_LOB);   // ⭐ CLAVE: binario real
+        //     $stmt->bindValue(6, $request->SN);
+
+        //     $stmt->execute();
+        // } catch (\Throwable $e) {
+        //     DB::table('error_log')->insert(['data' => $e->getMessage()]);
+        //     report($e);
+        //     return "ERROR";
+        // }
 
         return "OK";
     }

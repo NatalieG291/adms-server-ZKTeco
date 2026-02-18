@@ -26,6 +26,7 @@ route::get('attphoto', [DeviceController::class, 'AttPhoto'])->name('devices.Att
 Route::post('devices/restart', [DeviceController::class, 'RestartDevice'])->name('devices.restart')->middleware('auth');
 Route::post('devices/clear-admin', [DeviceController::class, 'ClearAdmin'])->name('devices.clear-admin')->middleware('auth');
 Route::post('devices/clear-log', [DeviceController::class, 'ClearLog'])->name('devices.clear-log')->middleware('auth');
+Route::post('devices/enroll', [DeviceController::class, 'EnrollEmployee'])->name('devices.enroll')->middleware('auth');
 Route::get('/attlog', [App\Http\Controllers\AttlogController::class, 'index']);
 
 // handshake
