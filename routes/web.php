@@ -27,6 +27,8 @@ Route::post('devices/restart', [DeviceController::class, 'RestartDevice'])->name
 Route::post('devices/clear-admin', [DeviceController::class, 'ClearAdmin'])->name('devices.clear-admin')->middleware('auth');
 Route::post('devices/clear-log', [DeviceController::class, 'ClearLog'])->name('devices.clear-log')->middleware('auth');
 Route::post('devices/enroll', [DeviceController::class, 'EnrollEmployee'])->name('devices.enroll')->middleware('auth');
+Route::post('devices/set-photo-config', [DeviceController::class, 'SetPhotoConfig'])->name('devices.set-photo-config')->middleware('auth');
+Route::post('devices/set-duplicate-time', [DeviceController::class, 'SetDuplicateTime'])->name('devices.set-duplicate-time')->middleware('auth');
 Route::get('/attlog', [App\Http\Controllers\AttlogController::class, 'index']);
 
 // handshake

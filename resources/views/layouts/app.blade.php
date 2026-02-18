@@ -183,7 +183,7 @@
     <script>
         let currentSN = null;
 
-        function setEnrollSN(sn) {
+        function setCurrentSN(sn) {
             currentSN = sn;
         }
     </script>
@@ -223,6 +223,62 @@
             .catch(err => {
                 console.error(err);
                 alert('Failed to send enroll request');
+            });
+        }
+    </script>
+    <script>
+        function SetPhotoConfig() {
+
+            if (!currentSN) {
+                alert("No device selected");
+                return;
+            }
+
+            const config = document.getElementById('photoConfig').value;
+
+            if (!confirm('Set photo configuration ' + config + ' on device ' + currentSN + '?')) return;
+
+            fetch("{{ route('devices.set-photo-config') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ sn: currentSN, config: config })
+            })
+            .then(r => r.json())
+            .then(data => alert(data.message || "Photo configuration request sent"))
+            .catch(err => {
+                console.error(err);
+                alert('Failed to send photo configuration request');
+            });
+        }
+    </script>
+    <script>
+        function setDuplicateTime() {
+
+            if (!currentSN) {
+                alert("No device selected");
+                return;
+            }
+
+            const minutes = document.getElementById('duplicateTime').value;
+
+            if (!confirm('Set duplicate punch period to ' + minutes + ' minutes on device ' + currentSN + '?')) return;
+
+            fetch("{{ route('devices.set-duplicate-time') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ sn: currentSN, minutes: minutes })
+            })
+            .then(r => r.json())
+            .then(data => alert(data.message || "Duplicate punch period request sent"))
+            .catch(err => {
+                console.error(err);
+                alert('Failed to send duplicate punch period request');
             });
         }
     </script>
