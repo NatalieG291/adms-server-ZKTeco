@@ -65,6 +65,30 @@ class DeviceController extends Controller
         return response()->json(['message' => "Lector enviado para enrollar empleado"]);
     }
 
+    public function SetPhotoConfig(Request $request)
+    {
+        $sn = $request->input('sn');
+        $option = $request->input('config');
+        $q['device_id'] = $sn;
+        $q['command'] = 'SET OPTION CapturePic='. $option;
+        $q['data'] = '{}';
+        $q['created_at'] = now();
+        DB::table('device_commands')->insert($q);
+        return response()->json(['message' => "Configuracion de fotos enviada al lector"]);
+    }
+
+    public function SetDuplicateTime(Request $request)
+    {
+        $sn = $request->input('sn');
+        $minutes = $request->input('minutes');
+        $q['device_id'] = $sn;
+        $q['command'] = 'SET OPTION AlarmReRec='. $minutes;
+        $q['data'] = '{}';
+        $q['created_at'] = now();
+        DB::table('device_commands')->insert($q);
+        return response()->json(['message' => "Configuracion de tiempo de duplicados enviada al lector"]);
+    }
+
     public function DeviceLog(Request $request)
     {
         $perPage = 15;
