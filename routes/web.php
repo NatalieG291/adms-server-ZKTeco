@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 use App\Http\Controllers\DeviceController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AbsensiSholatController;
 use App\Http\Controllers\iclockController;
 use App\Http\Controllers\AuthController;
@@ -23,6 +24,13 @@ Route::get('devices-log', [DeviceController::class, 'DeviceLog'])->name('devices
 Route::get('finger-log', [DeviceController::class, 'FingerLog'])->name('devices.FingerLog')->middleware('auth');
 Route::get('attendance', [DeviceController::class, 'Attendance'])->name('devices.Attendance')->middleware('auth');
 route::get('attphoto', [DeviceController::class, 'AttPhoto'])->name('devices.AttPhoto')->middleware('auth');
+Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index')->middleware('auth');
+Route::get('list-employees', [EmployeeController::class, 'ListEmployees'])->name('employee.list-employees')->middleware('auth');
+Route::post('employees/upload-photo', [EmployeeController::class, 'UploadPhoto'])->name('employee.upload-photo')->middleware('auth');
+Route::post('employees/EditEmployeeData', [EmployeeController::class, 'EditEmployeeData'])->name('employee.EditEmployeeData')->middleware('auth');
+Route::post('devices/download', [DeviceController::class, 'Download'])->name('devices.download')->middleware('auth');
+Route::post('devices/delete-data', [DeviceController::class, 'DeleteData'])->name('devices.delete-data')->middleware('auth');
+Route::post('devices/upload', [DeviceController::class, 'Upload'])->name('devices.upload')->middleware('auth');
 Route::post('devices/restart', [DeviceController::class, 'RestartDevice'])->name('devices.restart')->middleware('auth');
 Route::post('devices/clear-admin', [DeviceController::class, 'ClearAdmin'])->name('devices.clear-admin')->middleware('auth');
 Route::post('devices/clear-log', [DeviceController::class, 'ClearLog'])->name('devices.clear-log')->middleware('auth');

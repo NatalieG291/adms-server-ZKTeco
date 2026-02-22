@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('attphoto', function (Blueprint $table) {
+        Schema::create('emp_photos', function (Blueprint $table) {
             $table->id();
             $table->string('employee_id');
-            $table->dateTime('timestamp');
-            $table->string('filename');
-            $table->integer('size');
-            $table->binary('photo')->nullable();
-            $table->string('sn');
+            $table->string('size');
+            $table->longText('photo');
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('attphoto');
+        //
     }
 };

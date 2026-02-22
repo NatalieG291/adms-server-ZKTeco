@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('attphoto', function (Blueprint $table) {
+        Schema::create('faces', function (Blueprint $table) {
             $table->id();
-            $table->string('employee_id');
-            $table->dateTime('timestamp');
-            $table->string('filename');
-            $table->integer('size');
-            $table->binary('photo')->nullable();
-            $table->string('sn');
+            $table->string('pin');              
+            $table->integer('fid');             
+            $table->integer('size');            
+            $table->boolean('valid');           
+            $table->longText('template');       
             $table->timestamps();
         });
     }
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('attphoto');
+        Schema::dropIfExists('faces');
     }
 };

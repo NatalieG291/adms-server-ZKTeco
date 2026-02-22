@@ -83,14 +83,27 @@ class iclockController extends Controller
 public function receiveRecords(Request $request)
 {
     $a = $request->all();
-    if(str_contains($a['table'], 'ATTPHOTO')) {
-        return $this->fdata($request);
-    }
     
+    // Convert to UTF-8 to avoid UCS-2 encoding errors
+    $url_utf8 = mb_convert_encoding(json_encode($request->all()), 'UTF-8', 'auto');
+    $data_utf8 = mb_convert_encoding($request->getContent(), 'UTF-8', 'auto');
     DB::table('finger_log')->insert([
-        'url'  => json_encode($request->all()),
-        'data' => $request->getContent(),
+        'url'  => $url_utf8,
+        'data' => $data_utf8,
     ]);
+
+    if(str_contains($a['table'], 'ATTPHOTO') || str_contains($request->getContent(), 'USERPIC')) {
+        if(str_contains($request->getContent(), 'USERPIC')){
+            return $this->userpic($request);
+        }
+        else {
+            return $this->fdata($request);
+        }
+    }
+
+    if(str_contains($request->getContent(), 'USER PIN=')) {
+        return $this->receiveUser($request);
+    }
 
     try {
         $raw = trim($request->getContent());
@@ -104,7 +117,7 @@ public function receiveRecords(Request $request)
             $trim = trim($line);
 
             
-            if (str_starts_with($trim, 'FP')) {
+            if ((str_starts_with($trim, 'FP') || str_starts_with($trim, 'FACE'))) {
                 if ($buffer !== '') {
                     $clean[] = $buffer;
                 }
@@ -125,30 +138,50 @@ public function receiveRecords(Request $request)
 
         
         foreach ($clean as $fpLine) {
-            if (!str_starts_with(trim($fpLine), 'FP')) {
+            if (!str_starts_with(trim($fpLine), 'FP') && !str_starts_with(trim($fpLine), 'FACE')) {
                 continue;
             }
 
             preg_match('/PIN=(\d+)/', $fpLine, $pin);
             preg_match('/FID=(\d+)/', $fpLine, $fid);
-            preg_match('/Size=(\d+)/', $fpLine, $size);
+            if(preg_match('/Size=(\d+)/', $fpLine, $size)) {
+                preg_match('/Size=(\d+)/', $fpLine, $size);
+            }
+            else {
+                preg_match('/SIZE=(\d+)/', $fpLine, $size);
+            }
             preg_match('/Valid=(\d+)/', $fpLine, $valid);
             preg_match('/TMP=([\s\S]+)/', $fpLine, $tmp);
 
             $template = trim($tmp[1] ?? '');
 
-            DB::table('fingerprints')->updateOrInsert(
-                [
-                    'pin' => $pin[1] ?? null,
-                    'fid' => $fid[1] ?? null,
-                ],
-                [
-                    'size'       => $size[1] ?? 0,
-                    'valid'      => $valid[1] ?? 0,
-                    'template'   => $template,
-                    'updated_at' => now(),
-                ]
-            );
+            if(str_starts_with(trim($fpLine), 'FP')) {
+                DB::table('fingerprints')->updateOrInsert(
+                    [
+                        'pin' => $pin[1] ?? null,
+                        'fid' => $fid[1] ?? null,
+                    ],
+                    [
+                        'size'       => $size[1] ?? 0,
+                        'valid'      => $valid[1] ?? 0,
+                        'template'   => $template,
+                        'updated_at' => now(),
+                    ]
+                );
+            } else if(str_starts_with(trim($fpLine), 'FACE')) {
+                DB::table('faces')->updateOrInsert(
+                    [
+                        'pin' => $pin[1] ?? null,
+                        'fid' => $fid[1] ?? null,
+                    ],
+                    [
+                        'size'       => $size[1] ?? 0,
+                        'valid'      => $valid[1] ?? 0,
+                        'template'   => $template,
+                        'updated_at' => now(),
+                    ]
+                );
+            }
 
             $tot++;
         }
@@ -162,7 +195,7 @@ public function receiveRecords(Request $request)
             foreach ($records as $data) {
                 if (count($data) < 3) continue;
 
-                if(!str_contains($data[0], 'OPLOG') && !str_contains($data[0], '~DeviceName')) {
+                if(!str_contains($data[0], 'OPLOG') && !str_contains($data[0], '~DeviceName') && !str_contains($data[0], 'USER') && !str_contains($data[0], 'FP') && !str_contains($data[0], 'FACE')) {
 
                     $lector = DB::connection('giro')
                         ->table('Supervisor_giro.Lectores_adms')
@@ -225,11 +258,12 @@ public function receiveRecords(Request $request)
         foreach ($rows as $row) {
             if (empty(trim($row))) continue;
             if (str_starts_with(trim($row), 'FP')) continue;
+            if (str_starts_with(trim($row), 'FACE')) continue;
 
             $data = explode("\t", $row);
             if (count($data) < 2) continue;
 
-                if(!str_contains($data[0], 'OPLOG') && !str_contains($data[0], '~DeviceName')) {
+                if(!str_contains($data[0], 'OPLOG') && !str_contains($data[0], '~DeviceName') && !str_contains($data[0], 'USER')) {
                     $lector = DB::connection('giro')
                         ->table('Supervisor_giro.Lectores_adms')
                         ->where('NUMERO_SERIE', '=', $request->input('SN'))
@@ -293,9 +327,92 @@ public function receiveRecords(Request $request)
     }
 }
 
+public function receiveUser(Request $request)
+{
+    $raw = trim($request->getContent());
+    $lines = preg_split('/\r\n|\r|\n/', $raw);
+
+    foreach ($lines as $line) {
+        if (str_starts_with(trim($line), 'USER')) {
+            preg_match('/PIN=(\d+)/', $line, $matches);
+            preg_match('/Name=([^\s]+)\s+([^\s]+)/', $line, $nameMatches);
+            preg_match('/Pri=(\d+)/', $line, $priMatches);
+            preg_match('/Passwd=(\d+)/', $line, $passwdMatches);
+            preg_match('/Card=(\d+)/', $line, $cardMatches);
+            preg_match('/Grp=(\d+)/', $line, $grpMatches);
+            preg_match('/TZ=(\d+)/', $line, $tzMatches);
+            preg_match('/Verify=(\d+)/', $line, $verifyMatches);
+            preg_match('/ViceCard=(\d+)/', $line, $viceCardMatches);
+            preg_match('/StartDatetime=(\d+)/', $line, $startDatetimeMatches);
+            preg_match('/EndDatetime=(\d+)/', $line, $endDatetimeMatches);
+            if (isset($matches[1])) {
+                $employee_id = $matches[1];
+                $name = (isset($nameMatches[1]) ? $nameMatches[1] : '') . ' ' . (isset($nameMatches[2]) ? $nameMatches[2] : '');
+                $pri = isset($priMatches[1]) ? $priMatches[1] : null;
+                $passwd = isset($passwdMatches[1]) ? $passwdMatches[1] : null;
+                $card = isset($cardMatches[1]) ? $cardMatches[1] : null;
+                $grp = isset($grpMatches[1]) ? $grpMatches[1] : null;
+                $tz = isset($tzMatches[1]) ? $tzMatches[1] : null;
+                $verify = isset($verifyMatches[1]) ? $verifyMatches[1] : null;
+                $vice_card = isset($viceCardMatches[1]) ? $viceCardMatches[1] : null;
+                $start_datetime = isset($startDatetimeMatches[1]) ? $startDatetimeMatches[1] : null;
+                $end_datetime = isset($endDatetimeMatches[1]) ? $endDatetimeMatches[1] : null;
+                DB::table('employees')->updateOrInsert(
+                    ['employee_id' => $employee_id],
+                    ['name' => $name, 
+                    'pri' => $pri, 
+                    'passwd' => $passwd,
+                    'card' => $card,
+                    'group' => $grp,
+                    'tz' => $tz,
+                    'verify' => $verify,
+                    'vice_card' => $vice_card,
+                    'start_datetime' => $start_datetime,
+                    'end_datetime' => $end_datetime,
+                    'updated_at' => now()]
+                );
+            }
+        }
+    }
+
+    return "OK";
+}
+
 /////////////////////////////////
 // RECEPCIÓN DE FOTOS
 /////////////////////////////////
+
+public function userpic(Request $request)
+{
+    $raw = file_get_contents("php://input");
+
+    // Detectar si es una foto
+    if (strpos($raw, 'Content=') !== false) {
+
+        preg_match('/FileName=(.+\.jpg)/', $raw, $m1);
+        preg_match('/Size=(\d+)/', $raw, $m2);
+
+        $employee_id = substr($m1[1] ?? '', strpos($m1[1],'-') + 1, 10); 
+        $employee_id = substr($employee_id, 0, strpos($employee_id, '.'));
+
+        $filename = $m1[1] ?? ($employee_id . '.jpg');
+        $size = intval($m2[1] ?? 0);
+
+        preg_match('/Content=([A-Za-z0-9+\/=]+)/', $raw, $m3);
+        $base64 = $m3[1] ?? '';
+        $jpeg = base64_decode($base64);
+
+        Storage::disk('public')->put("userpic/$filename", $jpeg);
+        DB::table('emp_photos')->updateOrInsert(
+            ['employee_id' => $employee_id],
+            ['photo' => $filename, 'size' => $size, 'updated_at' => now()]
+        );
+
+        return "OK";
+    }
+
+    return "OK";
+}
 
 public function fdata(Request $request)
 {
@@ -317,36 +434,15 @@ public function fdata(Request $request)
         $jpeg = $jpeg = substr($raw, $jpegStart);
 
         Storage::disk('public')->put("attphoto/$filename", $jpeg);
-    
-        // try {
-        //     $pdo = DB::connection()->getPdo();
-
-        //     $sql = "
-        //         INSERT INTO attphoto (employee_id, timestamp, filename, size, photo, sn, created_at)
-        //         VALUES (?, ?, ?, ?, ?, ?, GETDATE())
-        //     ";
-
-        //     $stmt = $pdo->prepare($sql);
-
-        //     // Convertir JPEG a stream binario
-        //     $stream = fopen('php://memory', 'r+');
-        //     fwrite($stream, $jpeg);
-        //     rewind($stream);
-
-        //     // Bind de parámetros
-        //     $stmt->bindValue(1, $employee_id);
-        //     $stmt->bindValue(2, now());
-        //     $stmt->bindValue(3, $filename);
-        //     $stmt->bindValue(4, strlen($jpeg));
-        //     $stmt->bindValue(5, $stream, PDO::PARAM_LOB);   // ⭐ CLAVE: binario real
-        //     $stmt->bindValue(6, $request->SN);
-
-        //     $stmt->execute();
-        // } catch (\Throwable $e) {
-        //     DB::table('error_log')->insert(['data' => $e->getMessage()]);
-        //     report($e);
-        //     return "ERROR";
-        // }
+        DB::table('attphoto')->insert([
+            'employee_id' => $employee_id,
+            'timestamp' => now(),
+            'filename' => $filename,
+            'size' => $size,
+            'sn' => $request->input('SN'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         return "OK";
     }
@@ -370,14 +466,63 @@ public function fdata(Request $request)
     public function getrequest(Request $request)
     {
         $sn = $request->input('SN');
+        $info = $request->input('INFO'); // Ejemplo: Ver 8.0.4.7-20250212,4,6,10,192.168.100.15,10,7,12,1,111,1,1,50
+        $infoParts = explode(',', $info);
+        $fw = isset($infoParts[0]) ? $infoParts[0] : null;
+        $usr_count = isset($infoParts[1]) ? $infoParts[1] : null;
+        $fp_count = isset($infoParts[2]) ? $infoParts[2] : null;
+        $log_count = isset($infoParts[3]) ? $infoParts[3] : null;
+        $ip_address = isset($infoParts[4]) ? $infoParts[4] : null;
+        $photo_count = isset($infoParts[12]) ? $infoParts[12] : null;
 
-        // Buscar el dispositivo
         $device = DB::table('devices')->where('no_sn', $sn)->first();
         if (!$device) {
             return "OK";
         }
 
-        // Buscar comando pendiente
+        if($info !== null) {
+            DB::table('devices')
+                ->where('id', $device->id)
+                ->update([
+                    'fw_version' => $fw,
+                    'user_count' => $usr_count,
+                    'fp_count' => $fp_count,
+                    'transaction_count' => $log_count,
+                    'ip_address' => $ip_address,
+                    'photo_count' => $photo_count,
+                    'updated_at' => now(),
+                ]);
+        }
+
+        if(($log_count >= 100) || ($photo_count >= 100)){
+            DB::table('device_commands')
+                ->insert([
+                    'device_id' => $device->id,
+                    'command' => 'CHECK',
+                    'data' => '{}',
+                    'created_at' => now(),
+                ]);
+            if($log_count >= 100) {
+                DB::table('device_commands')
+                    ->insert([
+                        'device_id' => $device->id,
+                        'command' => 'CLEAR LOG',
+                        'data' => '{}',
+                        'created_at' => now(),
+                    ]);                
+            }
+            if($photo_count >= 100) {
+                DB::table('device_commands')
+                    ->insert([
+                        'device_id' => $device->id,
+                        'command' => 'CLEAR PHOTO',
+                        'data' => '{}',
+                        'created_at' => now(),
+                    ]);        
+            }
+
+        }
+
         $cmd = DB::table('device_commands')
             ->where('device_id', $device->id)
             ->whereNull('executed_at')
@@ -388,7 +533,6 @@ public function fdata(Request $request)
             return "OK";
         }
 
-        // Marcar como enviado
         DB::table('device_commands')
             ->where('id', $cmd->id)
             ->update([
@@ -396,15 +540,14 @@ public function fdata(Request $request)
                 'updated_at' => now(),
             ]);
 
-        // C:{ID}:{COMANDO}
         return "C:{$cmd->id}:{$cmd->command}";
     }
     public function deviceCmdResponse(Request $request)
     {
         $sn = $request->input('SN');
-        $id = $request->input('ID');
-        $return = $request->input('Return');
-        $cmd = $request->input('CMD');
+        $id = preg_match('/ID=(\d+)/', $request->getContent(), $m) ? $m[1] : null;
+        $return = preg_match('/Return=(\d+)/', $request->getContent(), $m2) ? $m2[1] : null;
+        $cmd = preg_match('/CMD=([\s\S]+)/', $request->getContent(), $m3) ? $m3[1] : null;
 
         if (!$id) {
             return "OK";
@@ -434,6 +577,39 @@ public function fdata(Request $request)
                     'response' => $cmd,
                     'updated_at' => now(),
                 ]);
+
+            if(str_contains($cmd, 'DeviceName')) {
+                $data = explode(chr(10), $cmd);
+                preg_match('/DeviceName=(.+)/', $cmd, $m);
+                $name = trim($m[1] ?? '');
+                preg_match('/TransactionCount=(\d+)/', $cmd, $m2);
+                $transactionCount = intval($m2[1] ?? 0);
+                preg_match('/UserCount=(\d+)/', $cmd, $m3);
+                $userCount = intval($m3[1] ?? 0);
+                preg_match('/FPCount=(\d+)/', $cmd, $m4);
+                $fpCount = intval($m4[1] ?? 0);
+                preg_match('/(?<!Max)FaceCount=(\d+)/', $cmd, $faceCountMatch);
+                $faceCount = intval($faceCountMatch[1] ?? 0);
+                preg_match('/IPAddress=(.+)/', $cmd, $m6);
+                $ip = trim($m6[1] ?? '');
+                preg_match('/FWVersion=(.+)/', $cmd, $m7);
+                $fw = trim($m7[1] ?? '');
+                preg_match('/PushVersion=(.+)/', $cmd, $m8);
+                $push = trim($m8[1] ?? '');
+                DB::table('devices')
+                    ->where('id', $device->id)
+                    ->update([
+                        'model' => $name,
+                        'transaction_count' => $transactionCount,
+                        'user_count' => $userCount,
+                        'fp_count' => $fpCount,
+                        'face_count' => $faceCount,
+                        'ip_address' => $ip,
+                        'fw_version' => $fw,
+                        'push_version' => $push,
+                        'updated_at' => now(),
+                    ]);
+            }
         } else {
             DB::table('device_commands')
                 ->where('id', $id)
