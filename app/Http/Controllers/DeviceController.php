@@ -8,6 +8,7 @@ use App\Models\Device;
 use App\Models\Attendance;
 use DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 
 class DeviceController extends Controller
 {
@@ -15,7 +16,14 @@ class DeviceController extends Controller
     public function index(Request $request)
     {
         $data['lable'] = "Devices";
-        $data['log'] = DB::table('devices')->select('id','no_sn','online')->orderBy('online', 'DESC')->get();
+        $data['log'] = DB::table('devices')
+            ->select('id','no_sn','descripcion','online', 'model', 'ip_address', 'transaction_count', 'user_count', 'fp_count', 'face_count', 'photo_count')
+            ->leftjoin('giro.supervisor_giro.lectores_adms',
+                DB::raw("devices.no_sn COLLATE SQL_Latin1_General_CP1_CI_AS"),
+                '=',
+                DB::raw("lectores_adms.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS")
+            )
+            ->orderBy('online', 'DESC')->get();
         return view('devices.index',$data);
     }
 
@@ -87,6 +95,139 @@ class DeviceController extends Controller
         $q['created_at'] = now();
         DB::table('device_commands')->insert($q);
         return response()->json(['message' => "Configuracion de tiempo de duplicados enviada al lector"]);
+    }
+
+    public function Download(Request $request)
+    {
+        $sn = $request->input('sn');
+        $all = $request->input('all');
+        $many = $request->input('empids');
+        if($all) {
+            $q['device_id'] = $sn;
+            $q['command'] = 'DATA QUERY USERINFO';
+            $q['data'] = '{}';
+            $q['created_at'] = now();
+            DB::table('device_commands')->insert($q);
+        }
+        else {
+             foreach($many as $empid) {
+                $q['device_id'] = $sn;
+                $q['command'] = 'DATA QUERY USERINFO PIN=' . $empid;
+                $q['data'] = '{}';
+                $q['created_at'] = now();
+                DB::table('device_commands')->insert($q);
+            }
+        }
+        return response()->json(['message' => "Datos de empleados solicitados al lector"]);
+    }
+
+    public function Upload(Request $request)
+    {
+        $sn = $request->input('sn');
+        $all = $request->input('all');
+        $many = $request->input('empids');
+        $fp = $request->input('fp');
+        $face = $request->input('face');
+        $photo = $request->input('photo');
+        if($all) {
+            $employees = DB::table('employees')->get();
+            foreach($employees as $employee) {
+                $q['device_id'] = $sn;
+                $q['command'] = "DATA UPDATE USERINFO\tPIN=$employee->employee_id\tName=$employee->name\tPri=$employee->pri\tPasswd=$employee->passwd\tCard=$employee->card\tGrp=1\tVerify=$employee->verify";
+                $q['data'] = '{}';
+                $q['created_at'] = now();
+                DB::table('device_commands')->insert($q);
+                sleep(2);
+                if($fp) {
+                    $fpdata = DB::table('fingerprints')->where('pin', $employee->employee_id)->get();
+                    foreach($fpdata as $fingerprint) {
+                        $q['device_id'] = $sn;
+                        $q['command'] = "DATA UPDATE FINGERTMP PIN=$fingerprint->pin\tFID=$fingerprint->fid\tSize=$fingerprint->size\tValid=$fingerprint->valid\tTMP=$fingerprint->template";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+                }
+                if($face) {
+                    $fcdata = DB::table('faces')->where('pin', $employee->employee_id)->get();
+                    foreach($fcdata as $face) {
+                        $q['device_id'] = $sn;
+                        $q['command'] = "DATA UPDATE FACE\tPIN=$face->pin\tFID=$face->fid\tSize=$face->size\tValid=1\tTMP=$face->template";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+                }
+                if($photo) {
+                    $pdata = DB::table('emp_photos')->where('employee_id', $employee->employee_id)->first();
+                    if($pdata) {
+                        $base64 = base64_encode(Storage::disk('public')->get("userpic/$employee->employee_id.jpg"));
+                        $size = $pdata->size;
+                        $q['device_id'] = $sn;
+                        $q['command'] = "DATA UPDATE USERPIC\tPIN=$employee->employee_id\tSize=$size\tContent=$base64";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+                }
+            }
+        }
+        else {
+            foreach($many as $empid) {
+                $employee = DB::table('employees')->where('employee_id', $empid)->first();
+                if($employee) {
+                    $q['device_id'] = $sn;
+                    $q['command'] = "DATA UPDATE USERINFO\tPIN=$employee->employee_id\tName=$employee->name\tPri=$employee->pri\tPasswd=$employee->passwd\tCard=$employee->card\tGrp=1\tVerify=$employee->verify";
+                    $q['data'] = '{}';
+                    $q['created_at'] = now();
+                    DB::table('device_commands')->insert($q);
+                }
+                if($fp) {
+                    $fpdata = DB::table('fingerprints')->where('pin', $employee->employee_id)->get();
+                    foreach($fpdata as $fingerprint) {
+                        $q['device_id'] = $sn;
+                        $q['command'] = "DATA UPDATE FINGERTMP PIN=$fingerprint->pin\tFID=$fingerprint->fid\tSize=$fingerprint->size\tValid=$fingerprint->valid\tTMP=$fingerprint->template";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+                }
+                if($face) {
+                    $fcdata = DB::table('faces')->where('pin', $employee->employee_id)->get();
+                    foreach($fcdata as $face) {
+                        $q['device_id'] = $sn;
+                        $q['command'] = "DATA UPDATE FACE\tPIN=$face->pin\tFID=$face->fid\tSize=$face->size\tValid=1\tTMP=$face->template";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+                }
+                if($photo) {
+                    $pdata = DB::table('emp_photos')->where('employee_id', $employee->employee_id)->first();
+                    if($pdata) {
+                        $base64 = base64_encode(Storage::disk('public')->get("userpic/$employee->employee_id.jpg"));
+                        $size = $pdata->size;
+                        $q['device_id'] = $sn;
+                        $q['command'] = "DATA UPDATE USERPIC\tPIN=$employee->employee_id\tSize=$size\tContent=$base64";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+                }
+            }
+        }
+        return response()->json(['message' => "Datos de empleados enviados al lector"]);
+    }
+
+    public function deleteData (Request $request)
+    {
+        $sn = $request->input('sn');
+        $q['device_id'] = $sn;
+        $q['command'] = 'CLEAR DATA';
+        $q['data'] = '{}';
+        $q['created_at'] = now();
+        DB::table('device_commands')->insert($q);
+        return response()->json(['message' => "Datos de empleados eliminados del lector"]);
     }
 
     public function DeviceLog(Request $request)

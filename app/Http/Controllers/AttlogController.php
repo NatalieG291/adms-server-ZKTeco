@@ -12,6 +12,7 @@ class AttlogController extends Controller
         // 1. Obtener los registros crudos desde finger_log
         $logs = DB::table('finger_log')->select('id', 'data', 'url')
             ->where('url', 'like', '%ATTLOG%')
+            ->where('created_at', '>=', new DateTime('-1 day')) // Solo logs del último día para evitar procesar demasiados registros
             ->get();
 
         $attlogs = [];
