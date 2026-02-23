@@ -14,7 +14,12 @@
         function navActive() {
             const pathname = window.location.pathname;
             const page = pathname.replace("/", "");
-            document.getElementById(page).classList.add('active');
+            if(page == "devices"){
+                document.getElementById('devicesnav').classList.add('active');
+            }
+            else{
+                document.getElementById(page).classList.add('active');
+            }
         }
     </script>
     <style>s
@@ -259,28 +264,28 @@
             <a class="navbar-brand" href="#">
                 <img src="storage/logo_ossc.png" height="25vw" width="auto" class="d-inline-block align-text-top">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegación">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        <a class="nav-link" id="devices" href="{{ route('devices.index') }}">Device</a>
+                        <a class="nav-link" id="devicesnav" href="{{ route('devices.index') }}">Dispositivo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="attendance" href="{{ route('devices.Attendance') }}">Attendance</a>
+                        <a class="nav-link" id="attendance" href="{{ route('devices.Attendance') }}">Asistencia</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="devices-log" href="{{ route('devices.DeviceLog') }}">Device Log</a>
+                        <a class="nav-link" id="devices-log" href="{{ route('devices.DeviceLog') }}">Registro del Dispositivo</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="finger-log" href="{{ route('devices.FingerLog') }}">Finger Log</a>
+                        <a class="nav-link" id="finger-log" href="{{ route('devices.FingerLog') }}">Registro de Huella</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="attphoto" href="{{ route('devices.AttPhoto') }}">Attendance Photo</a>
+                        <a class="nav-link" id="attphoto" href="{{ route('devices.AttPhoto') }}">Foto de Asistencia</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="employees" href="{{ route('employees.index') }}">Employees</a>
+                        <a class="nav-link" id="employees" href="{{ route('employees.index') }}">Empleados</a>
                     </li>
                 </ul>
             </div>
@@ -293,13 +298,13 @@
                     <li class="nav-item">
                         <form method="POST" action="{{ url('/logout') }}">
                             @csrf
-                            <button type="submit" class="btn btn-primary">Logout</button>
+                            <button type="submit" class="btn btn-primary">Salir</button>
                         </form>
                     </li>
                 @endauth
                 @guest
                     <li class="nav-item">
-                        <a class="btn btn-primary" href="{{ url('/login') }}">Login</a>
+                        <a class="btn btn-primary" href="{{ url('/login') }}">Iniciar Sesión</a>
                     </li>
                 @endguest
             </ul>
@@ -332,17 +337,17 @@
     <script>
         function RestartDevice() {
             if (!currentSN) {
-                Swal.fire('No device selected', '', 'error');
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
 
             Swal.fire({
-                title: 'Are you sure?',
-                text: 'Restart device ' + currentSN + '?',
+                title: '¿Estás seguro?',
+                text: 'Reiniciar dispositivo ' + currentSN + '?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, restart it!',
-                cancelButtonText: 'No, cancel'
+                confirmButtonText: '¡Sí, reiniciarlo!',
+                cancelButtonText: 'No, cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch("{{ route('devices.restart') }}", {
@@ -358,12 +363,12 @@
                         if (data && data.message) {
                             Swal.fire(data.message, '', 'success');
                         } else {
-                            Swal.fire('Restart request sent', '', 'success');
+                            Swal.fire('Solicitud de reinicio enviada', '', 'success');
                         }
                     })
                     .catch(function(err){
                         console.error(err);
-                        Swal.fire('Failed to send restart request', '', 'error');
+                        Swal.fire('Error al enviar la solicitud de reinicio', '', 'error');
                     });
                 }
             });
@@ -373,17 +378,17 @@
         function ClearAdmin() {
         
             if (!currentSN) {
-                Swal.fire('No device selected', '', 'error');
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
 
             Swal.fire ({
-                title: 'Are you sure?',
-                text: 'Clear administrator data on device ' + currentSN + '? This action cannot be undone.',
+                title: '¿Estás seguro?',
+                text: '¿Borrar datos de administrador en el dispositivo ' + currentSN + '? Esta acción no se puede deshacer.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, clear it!',
-                cancelButtonText: 'No, cancel'
+                confirmButtonText: '¡Sí, borrarlo!',
+                cancelButtonText: 'No, cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch("{{ route('devices.clear-admin') }}", {
@@ -399,12 +404,12 @@
                         if (data && data.message) {
                             Swal.fire(data.message, '', 'success');
                         } else {
-                            Swal.fire('Clear administrator request sent', '', 'success');
+                            Swal.fire('Solicitud de borrado de administrador enviada', '', 'success');
                         }
                     })
                     .catch(function(err){
                         console.error(err);
-                        Swal.fire('Failed to send clear administrator request', '', 'error');
+                        Swal.fire('Error al enviar la solicitud de borrado de administrador', '', 'error');
                     });
                 }
             });   
@@ -413,17 +418,17 @@
     <script>
         function ClearLog() {
             if (!currentSN) {
-                Swal.fire('No device selected', '', 'error');
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
 
             Swal.fire({
-                title: 'Are you sure?',
-                text: 'Clear log on device ' + currentSN + '? This action cannot be undone.',
+                title: '¿Estás seguro?',
+                text: '¿Borrar registro en el dispositivo ' + currentSN + '? Esta acción no se puede deshacer.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, clear it!',
-                cancelButtonText: 'No, cancel'
+                confirmButtonText: '¡Sí, borrarlo!',
+                cancelButtonText: 'No, cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch("{{ route('devices.clear-log') }}", {
@@ -439,12 +444,12 @@
                         if (data && data.message) {
                             Swal.fire(data.message, '', 'success');
                         } else {
-                            Swal.fire('Clear log request sent', '', 'success');
+                            Swal.fire('Solicitud de borrado de registro enviada', '', 'success');
                         }
                     })
                     .catch(function(err){
                         console.error(err);
-                        Swal.fire('Failed to send clear log request', '', 'error');
+                        Swal.fire('Error al enviar la solicitud de borrado de registro', '', 'error');
                     });
                 }
             });
@@ -474,7 +479,7 @@
         function EnrollEmployee() {
 
             if (!currentSN) {
-                Swal.fire('No device selected', '', 'error');
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
 
@@ -482,22 +487,22 @@
             const dedo = document.getElementById('dedo').value;
 
             if (!empid) {
-                Swal.fire('No employee ID entered', '', 'error');
+                Swal.fire('Ningún ID de empleado ingresado', '', 'error');
                 return;
             }
 
             if (!dedo) {
-                Swal.fire('Please select a finger', '', 'error');
+                Swal.fire('Por favor seleccione un dedo', '', 'error');
                 return;
             }
 
             Swal.fire({
-                title: 'Are you sure?',
-                text: 'Enroll employee ' + empid + ' with finger ' + dedo + ' on device ' + currentSN + '?',
+                title: '¿Estás seguro?',
+                text: '¿Inscribir empleado ' + empid + ' con dedo ' + dedo + ' en el dispositivo ' + currentSN + '?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, enroll!',
-                cancelButtonText: 'No, cancel'
+                confirmButtonText: '¡Sí, inscribir!',
+                cancelButtonText: 'No, cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch("{{ route('devices.enroll') }}", {
@@ -509,13 +514,13 @@
                         body: JSON.stringify({ sn: currentSN, empid: empid, dedo: dedo })
                     })
                     .then(r => r.json())
-                    .then(data => Swal.fire(data.message || "Enroll request sent", '', 'success'))
+                    .then(data => Swal.fire(data.message || "Solicitud de inscripción enviada", '', 'success'))
                     .then(() => {
                         CloseEnrollModal();
                     })
                     .catch(err => {
                         console.error(err);
-                        Swal.fire('Failed to send enroll request', '', 'error');
+                        Swal.fire('Error al enviar la solicitud de inscripción', '', 'error');
                     });
                 }
             });
@@ -525,19 +530,19 @@
         function SetPhotoConfig() {
 
             if (!currentSN) {
-                Swal.fire('No device selected', '', 'error');
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
 
             const config = document.getElementById('photoConfig').value;
 
             Swal.fire({
-                title: 'Are you sure?',
-                text: 'Set photo configuration to ' + config + ' on device ' + currentSN + '?',
+                title: '¿Estás seguro?',
+                text: '¿Establecer configuración de foto a ' + config + ' en el dispositivo ' + currentSN + '?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, set it!',
-                cancelButtonText: 'No, cancel'
+                confirmButtonText: '¡Sí, configurarlo!',
+                cancelButtonText: 'No, cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch("{{ route('devices.set-photo-config') }}", {
@@ -549,13 +554,13 @@
                         body: JSON.stringify({ sn: currentSN, config: config })
                     })
                     .then(r => r.json())
-                    .then(data => Swal.fire(data.message || "Photo configuration request sent", '', 'success'))
+                    .then(data => Swal.fire(data.message || "Solicitud de configuración de foto enviada", '', 'success'))
                     .then(() => {
                         ClosePictureModal();
                     })
                     .catch(err => {
                         console.error(err);
-                        Swal.fire('Failed to send photo configuration request', '', 'error');
+                        Swal.fire('Error al enviar la solicitud de configuración de foto', '', 'error');
                     });
                 }
             });
@@ -565,7 +570,7 @@
         function setDuplicateTime() {
 
             if (!currentSN) {
-                Swal.fire('No device selected', '', 'error');
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
 
@@ -573,12 +578,12 @@
 
             // if (!confirm('Set duplicate punch period to ' + minutes + ' minutes on device ' + currentSN + '?')) return;
             Swal.fire({
-                title: 'Are you sure?',
-                text: 'Set duplicate punch period to ' + minutes + ' minutes on device ' + currentSN + '?',
+                title: '¿Estás seguro?',
+                text: '¿Establecer período de acceso duplicado a ' + minutes + ' minutos en el dispositivo ' + currentSN + '?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, set it!',
-                cancelButtonText: 'No, cancel'
+                confirmButtonText: '¡Sí, configurarlo!',
+                cancelButtonText: 'No, cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch("{{ route('devices.set-duplicate-time') }}", {
@@ -590,13 +595,13 @@
                         body: JSON.stringify({ sn: currentSN, minutes: minutes })
                     })
                     .then(r => r.json())
-                    .then(data => Swal.fire(data.message || "Duplicate punch period request sent", '', 'success'))
+                    .then(data => Swal.fire(data.message || "Solicitud de período de acceso duplicado enviada", '', 'success'))
                     .then(() => {
                         CloseDuplicateTimeModal();
                     })
                     .catch(err => {
                         console.error(err);
-                        Swal.fire('Failed to send duplicate punch period request', '', 'error');
+                        Swal.fire('Error al enviar la solicitud de período de acceso duplicado', '', 'error');
                     });
                 }
             });
@@ -606,7 +611,7 @@
         function EditEmployeeData() {
 
             if (!currentEmployee) {
-                Swal.fire('No employee selected', '', 'error');
+                Swal.fire('Ningún empleado seleccionado', '', 'error');
                 return;
             }
 
@@ -619,12 +624,12 @@
             const devices = document.getElementById('devices').value;
 
             Swal.fire({
-                title: 'Are you sure?',
-                text: 'Save changes to employee ' + currentEmployee + '?',
+                title: '¿Estás seguro?',
+                text: '¿Guardar cambios en el empleado ' + currentEmployee + '?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, save it!',
-                cancelButtonText: 'No, cancel'
+                confirmButtonText: '¡Sí, guardarlo!',
+                cancelButtonText: 'No, cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch("{{ route('employee.EditEmployeeData') }}", {
@@ -636,13 +641,13 @@
                         body: JSON.stringify({ empid: currentEmployee, name: name, pri: pri, passwd: passwd, card: card, verify: verify, send: send, devices: devices })
                     })
                     .then(r => r.json())
-                    .then(data => Swal.fire(data.message || "Edit employee request sent", '', 'success'))
+                    .then(data => Swal.fire(data.message || "Solicitud de edición de empleado enviada", '', 'success'))
                     .then(() => {
                         location.reload();
                     })
                     .catch(err => {
                         console.error(err);
-                        Swal.fire('Failed to send edit employee request', '', 'error');
+                        Swal.fire('Error al enviar la solicitud de edición de empleado', '', 'error');
                     });
                 }
             });
@@ -712,7 +717,7 @@
                     .on('change', '[type="checkbox"]', function() {
                         var container = $(this).closest('.dropdown-container');
                         var numChecked = container. find('[type="checkbox"]:checked').length;
-                        container.find('.quantity').text(numChecked || 'Any');
+                        container.find('.quantity').text(numChecked || 'Cualquiera');
                     });
 
                 // <li> template
@@ -723,7 +728,6 @@
                     '</li>'
                 );
 
-                // JSON of States for demo purposes
                 fetch("{{ route('employee.list-employees') }}", {
                                     method: 'GET',
                                     headers: {
@@ -735,7 +739,7 @@
                                 .then(data => {
                                     var empData = data.employees;
                                     var i;
-                                    // Populate list with states
+                                    // Llenar lista con empleados
                                     for (i = 0; i < empData.length; i++) {
                                         var emp = empData[i];
                                         var capName = emp.employee_id + " - " + emp.name.charAt(0).toUpperCase() + emp.name.slice(1);
@@ -749,7 +753,7 @@
     <script>
         function DownloadData() {
             if (!currentSN) {
-                Swal.fire('No device selected', '', 'error');
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
 
@@ -766,16 +770,16 @@
                     }
                 });
                 if(checkedEmpIds.length === 0) {
-                    Swal.fire('No employees selected', '', 'error');
+                    Swal.fire('Ningún empleado seleccionado', '', 'error');
                     return;
                 }
                 Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'Download data for selected employees from device ' + currentSN + '?',
+                    title: '¿Estás seguro?',
+                    text: '¿Descargar datos para empleados seleccionados del dispositivo ' + currentSN + '?',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, download it!',
-                    cancelButtonText: 'No, cancel'
+                    confirmButtonText: '¡Sí, descargarlo!',
+                    cancelButtonText: 'No, cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $("#loader-lu").addClass("is-active");
@@ -790,14 +794,14 @@
                         .then(r => r.json())
                         .then(data => {
                             $("#loader-lu").removeClass("is-active");
-                            Swal.fire(data.message || "Download request sent", '', 'success');
+                            Swal.fire(data.message || "Solicitud de descarga enviada", '', 'success');
                         })
                         .then(() => {
                             CloseDownloadModal();
                         })
                         .catch(err => {
                             console.error(err);
-                            Swal.fire('Failed to send download request', '', 'error');
+                            Swal.fire('Error al enviar la solicitud de descarga', '', 'error');
                             $("#loader-lu").removeClass("is-active");
                         });
                     }
@@ -805,12 +809,12 @@
             }   
             else {
                 Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'Download data for ' + (all ? 'all employees' : 'selected employees') + ' from device ' + currentSN + '?',
+                    title: '¿Estás seguro?',
+                    text: '¿Descargar datos para ' + (all ? 'todos los empleados' : 'empleados seleccionados') + ' del dispositivo ' + currentSN + '?',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, download it!',
-                    cancelButtonText: 'No, cancel'
+                    confirmButtonText: '¡Sí, descargarlo!',
+                    cancelButtonText: 'No, cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $("#loader-lu").addClass("is-active");
@@ -825,14 +829,14 @@
                         .then(r => r.json())
                         .then(data => {
                             $("#loader-lu").removeClass("is-active");
-                            Swal.fire(data.message || "Download request sent", '', 'success');
+                            Swal.fire(data.message || "Solicitud de descarga enviada", '', 'success');
                         })
                         .then(() => {
                             CloseDownloadModal();
                         })
                         .catch(err => {
                             console.error(err);
-                            Swal.fire('Failed to send download request', '', 'error');
+                            Swal.fire('Error al enviar la solicitud de descarga', '', 'error');
                         });
                     }
                 });
@@ -878,7 +882,7 @@
                     '</li>'
                 );
 
-                // JSON of States for demo purposes
+                // JSON de Empleados para propósitos de demostración
                 fetch("{{ route('employee.list-employees') }}", {
                                     method: 'GET',
                                     headers: {
@@ -890,7 +894,7 @@
                                 .then(data => {
                                     var empData = data.employees;
                                     var i;
-                                    // Populate list with states
+                                    // Llenar lista con empleados
                                     for (i = 0; i < empData.length; i++) {
                                         var emp = empData[i];
                                         var capName = emp.employee_id + " - " + emp.name.charAt(0).toUpperCase() + emp.name.slice(1);
@@ -904,7 +908,7 @@
     <script>
         function UploadData() {
             if (!currentSN) {
-                Swal.fire('No device selected', '', 'error');
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
 
@@ -924,16 +928,16 @@
                     }
                 });
                 if(checkedEmpIds.length === 0) {
-                    Swal.fire('No employees selected', '', 'error');
+                    Swal.fire('Ningún empleado seleccionado', '', 'error');
                     return;
                 }
                 Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'Upload data for selected employees to device ' + currentSN + '?',
+                    title: '¿Estás seguro?',
+                    text: '¿Subir datos para empleados seleccionados al dispositivo ' + currentSN + '?',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, upload it!',
-                    cancelButtonText: 'No, cancel'
+                    confirmButtonText: '¡Sí, subirlo!',
+                    cancelButtonText: 'No, cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $("#loader-lu").addClass("is-active");
@@ -948,14 +952,14 @@
                         .then(r => r.json())
                         .then(data => {
                             $("#loader-lu").removeClass("is-active");
-                            Swal.fire(data.message || "Upload request sent", '', 'success');
+                            Swal.fire(data.message || "Solicitud de subida enviada", '', 'success');
                         })
                         .then(() => {
                             CloseUploadModal();
                         })
                         .catch(err => {
                             console.error(err);
-                            Swal.fire('Failed to send upload request', '', 'error');
+                            Swal.fire('Error al enviar la solicitud de subida', '', 'error');
                             $("#loader-lu").removeClass("is-active");
                         });
                     }
@@ -963,12 +967,12 @@
             }   
             else {
                 Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'Upload data for ' + (all ? 'all employees' : 'selected employees') + ' to device ' + currentSN + '?',
+                    title: '¿Estás seguro?',
+                    text: '¿Subir datos para ' + (all ? 'todos los empleados' : 'empleados seleccionados') + ' al dispositivo ' + currentSN + '?',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, upload it!',
-                    cancelButtonText: 'No, cancel'
+                    confirmButtonText: '¡Sí, subirlo!',
+                    cancelButtonText: 'No, cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $("#loader-lu").addClass("is-active");
@@ -983,14 +987,14 @@
                         .then(r => r.json())
                         .then(data => {
                             $("#loader-lu").removeClass("is-active");
-                            Swal.fire(data.message || "Upload request sent", '', 'success');
+                            Swal.fire(data.message || "Solicitud de subida enviada", '', 'success');
                         })
                         .then(() => {
                             CloseUploadModal();
                         })
                         .catch(err => {
                             console.error(err);
-                            Swal.fire('Failed to send upload request', '', 'error');
+                            Swal.fire('Error al enviar la solicitud de subida', '', 'error');
                             $("#loader-lu").removeClass("is-active");
                         });
                     }
@@ -1001,7 +1005,7 @@
     <script>
         function uploadEmployeePhoto() {
             if (!currentEmployee) {
-                Swal.fire('No employee selected', '', 'error');
+                Swal.fire('Ningún empleado seleccionado', '', 'error');
                 return;
             }
 
@@ -1009,12 +1013,12 @@
             const file = fileInput.files[0];
 
             if (!file) {
-                Swal.fire('No photo selected', '', 'error');
+                Swal.fire('Ninguna foto seleccionada', '', 'error');
                 return;
             }
 
             if (file.type !== 'image/jpeg') {
-                Swal.fire('Invalid file type. Please select a JPEG image.', '', 'error');
+                Swal.fire('Tipo de archivo inválido. Por favor seleccione una imagen JPEG.', '', 'error');
                 return;
             }
 
@@ -1034,15 +1038,15 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
-                        Swal.fire('Photo uploaded successfully', '', 'success');
+                        Swal.fire('Foto subida exitosamente', '', 'success');
                         document.getElementById('employeePhoto').src = '/storage/userpic/' + currentEmployee + '.jpg';
                     } else {
-                        Swal.fire(data.message || 'Failed to upload photo', '', 'error');
+                        Swal.fire(data.message || 'Error al subir la foto', '', 'error');
                     }
                 })
                 .catch(err => {
                     console.error(err);
-                    Swal.fire('Failed to upload photo', '', 'error');
+                    Swal.fire('Error al subir la foto', '', 'error');
                 });
             };
             reader.readAsDataURL(file);
@@ -1051,26 +1055,26 @@
     <script>
         function DeleteData() {
             if (!currentSN) {
-                Swal.fire('No device selected', '', 'error');
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
 
             Swal.fire({
-                title: 'Are you sure?',
-                text: 'Delete all data on device ' + currentSN + '? This action cannot be undone.',
+                title: '¿Estás seguro?',
+                text: '¿Borrar todos los datos en el dispositivo ' + currentSN + '? Esta acción no se puede deshacer.',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'No, cancel'
+                confirmButtonText: '¡Sí, borrarlo!',
+                cancelButtonText: 'No, cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'Second confirmation',
-                        text: 'This will permanently delete all data on the device. Are you absolutely sure?',
+                        title: 'Segunda confirmación',
+                        text: 'Esto borrará permanentemente todos los datos en el dispositivo. ¿Estás absolutamente seguro?',
                         icon: 'error',
                         showCancelButton: true,
-                        confirmButtonText: 'Yes, delete permanently!',
-                        cancelButtonText: 'No, cancel'
+                        confirmButtonText: '¡Sí, borrar permanentemente!',
+                        cancelButtonText: 'No, cancelar'
                     }).then((secondResult) => {
                         if (secondResult.isConfirmed) {
                             fetch("{{ route('devices.delete-data') }}", {
@@ -1082,13 +1086,13 @@
                                 body: JSON.stringify({ sn: currentSN })
                             })
                             .then(r => r.json())
-                            .then(data => Swal.fire(data.message || "Delete request sent", '', 'success'))
+                            .then(data => Swal.fire(data.message || "Solicitud de borrado enviada", '', 'success'))
                             .catch(err => {
                                 console.error(err);
-                                Swal.fire('Failed to send delete request', '', 'error');
+                                Swal.fire('Error al enviar la solicitud de borrado', '', 'error');
                             });
                         } else {
-                            Swal.fire('Delete action cancelled', '', 'info');
+                            Swal.fire('Acción de borrado cancelada', '', 'info');
                         }
                     });
                 }

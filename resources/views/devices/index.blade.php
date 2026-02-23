@@ -5,30 +5,30 @@
         <h2>{{ $lable }}</h2>
         <div class="btn-toolbar" role="toolbar">
             <div class="btn-group me-2" role="group">
-                <button type="button" class="btn btn-warning mb-3" onclick="RestartDevice()">Restart</button>
+                <button type="button" class="btn btn-warning" onclick="RestartDevice()">Reiniciar</button>
             </div>
             <div class="btn-group me-2" role="group" aria-label="Basic outlined example" style="display: block !important;">
                 <button id=btnGroupDrop1 type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    Clear data
+                    Borrar datos
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                    <li><a class="link-danger dropdown-item" onclick="ClearAdmin()">Clear admin</a></li>
-                    <li><a class="link-danger dropdown-item" onclick="DeleteData()">Delete data</a></li>
-                    <li><a class="link-dark dropdown-item" onclick="ClearLog()">Clear log</a></li>
+                    <li><a class="link-danger dropdown-item" onclick="ClearAdmin()">Borrar administrador</a></li>
+                    <li><a class="link-danger dropdown-item" onclick="DeleteData()">Borrar datos</a></li>
+                    <li><a class="link-dark dropdown-item" onclick="ClearLog()">Borrar registro</a></li>
                 </ul>
             </div>
             <div class="btn-group me-2" role="group" aria-label="Basic outlined example" style="display: block !important;">
                 <button id=btnGroupDrop1 type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    Device Settings
+                    Configuración del Dispositivo
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#pictureModal">Capture Setting</a></li>
-                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#duplicateTimeModal">Duplicate punch period</a></li>
+                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#pictureModal">Configuración de captura</a></li>
+                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#duplicateTimeModal">Período de acceso duplicado</a></li>
                 </ul>
             </div>
-            <button type="button" class="btn btn-primary mb-3 me-2" data-bs-toggle="modal" data-bs-target="#enrollModal">Enroll Remotely</button>
-            <button type="button" class="btn btn-primary mb-3 me-2" data-bs-toggle="modal" data-bs-target="#downloadData">Download User Data</button>
-            <button type="button" class="btn btn-primary mb-3 me-2" data-bs-toggle="modal" data-bs-target="#uploadData">Upload User Data</button>
+            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#enrollModal">Enrolamiento remoto</button>
+            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#downloadData">Descargar datos de usuario</button>
+            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#uploadData">Subir datos de usuario</button>
             
         </div>
         <br><br>
@@ -38,19 +38,16 @@
                 <tr>
                     <th></th>
                     {{-- <th>No</th> --}}
-                    <th>Serial Number</th>
-                    <th>Description</th>
-                    <th>Model</th>
-                    <th>IP Address</th>
-                    <th>Transaction Count</th>
-                    <th>Attendance photos</th>
-                    <th>User Count</th>
-                    <th>FP Count</th>
-                    <th>Face Count</th>
-                    <th>Online</th>
-                    @auth
-                    <!-- <th>Action</th> -->
-                    @endauth
+                    <th>Número de Serie</th>
+                    <th>Descripción</th>
+                    <th>Modelo</th>
+                    <th>Dirección IP</th>
+                    <th>Número de transacciones</th>
+                    <th>Fotos de asistencia</th>
+                    <th>Número de usuarios</th>
+                    <th>Conteo de huellas</th>
+                    <th>Conteo de rostros</th>
+                    <th>En línea</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,16 +69,6 @@
                         <td>{{ $d->fp_count }}</td>
                         <td>{{ $d->face_count }}</td>
                         <td>{{ $d->online }}</td>
-                        @auth
-                        <!-- <td>
-                            <button class="btn btn-sm btn-warning" onclick="RestartDevice('{{ $d->id }}')">Restart</button>
-                            <button class="btn btn-sm btn-danger" onclick="ClearAdmin('{{ $d->id }}')">Clear admin</button>
-                            <button class="btn btn-sm btn-secondary" onclick="ClearLog('{{ $d->id }}')">Clear log</button>
-                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#enrollModal" onclick="setCurrentSN('{{ $d->id }}')">Enroll Emp</button>
-                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#pictureModal" onclick="setCurrentSN('{{ $d->id }}')">Photo config</button>
-                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#duplicateTimeModal" onclick="setCurrentSN('{{ $d->id }}')">Duplicate punch period</button>
-                        </td> -->
-                        @endauth
                     </tr>
                 @endforeach
             </tbody>
@@ -96,34 +83,34 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="downloadDataLabel">Download user data</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="downloadDataLabel">Descargar datos de usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3 form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1" onChange="document.getElementById('employeeSelect').classList.add('visually-hidden');" checked>
-                        <label class="form-check-label" for="inlineRadio1">All employees</label>
+                        <label class="form-check-label" for="inlineRadio1">Todos los empleados</label>
                     </div>
                     <div class="mb-3 form-check form-check-inline">
                         <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2" onChange="document.getElementById('employeeSelect').classList.remove('visually-hidden');">
-                        <label class="form-check-label" for="inlineRadio2">Specific employee</label>
+                        <label class="form-check-label" for="inlineRadio2">Empleado específico</label>
                     </div>
                     <div class="dropdown-container visually-hidden" id="employeeSelect">
                         <div class="dropdown-button noselect w-100">
-                            <div class="dropdown-label">Employees</div>
+                            <div class="dropdown-label">Empleados</div>
                             <div class="dropdown-quantity">(<span class="quantity"></span>)</div>
                         <i class="fa fa-chevron-down"></i>
 				    </div>
                         <div class="dropdown-list" style="">
-                            <input type="search" placeholder="Search employees" class="dropdown-search">
+                            <input type="search" placeholder="Buscar empleados" class="dropdown-search">
                             <ul class="dropdown-list">
                             </ul>
                         </div>
 					</div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="DownloadData()">Download</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="DownloadData()">Descargar</button>
                 </div>
             </div>
         </div>
@@ -133,50 +120,50 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="uploadDataLabel">Upload user data</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="uploadDataLabel">Subir datos de usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="container border-bottom mb-3">
                         <div class="mb-3 form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="inlineRadioOptions" id="allEmployeesUpload" value="option1" onChange="document.getElementById('employeeSelectUpload').classList.add('visually-hidden');" checked>
-                            <label class="form-check-label" for="allEmployeesUpload">All employees</label>
+                            <label class="form-check-label" for="allEmployeesUpload">Todos los empleados</label>
                         </div>
                         <div class="mb-3 form-check form-check-inline">
                             <input class="form-check-input" type="radio" name="inlineRadioOptions" id="specificEmployeeUpload" value="option2" onChange="document.getElementById('employeeSelectUpload').classList.remove('visually-hidden');">
-                            <label class="form-check-label" for="specificEmployeeUpload">Specific employee</label>
+                            <label class="form-check-label" for="specificEmployeeUpload">Empleado específico</label>
                         </div>
                     </div>  
                     <div class="container border-bottom mb-3">
                         <div class="form-check form-check-inline mb-3">
                             <input class="form-check-input" type="checkbox" id="fingerprints" value="option1">
-                            <label class="form-check-label" for="fingerprints">Fingerprints</label>
+                            <label class="form-check-label" for="fingerprints">Huellas dactilares</label>
                         </div>
                         <div class="form-check form-check-inline mb-3">
                             <input class="form-check-input" type="checkbox" id="faces" value="option2">
-                            <label class="form-check-label" for="faces">Faces</label>
+                            <label class="form-check-label" for="faces">Rostros</label>
                         </div>
                         <div class="form-check form-check-inline mb-3">
                             <input class="form-check-input" type="checkbox" id="Photos" value="option3">
-                            <label class="form-check-label" for="Photos">User Photos</label>
+                            <label class="form-check-label" for="Photos">Fotos de usuario</label>
                         </div>
                     </div>
                     <div class="dropdown-container visually-hidden mb-3" id="employeeSelectUpload">
                         <div class="dropdown-button noselect w-100">
-                            <div class="dropdown-label">Employees</div>
+                            <div class="dropdown-label">Empleados</div>
                             <div class="dropdown-quantity">(<span class="quantity"></span>)</div>
                         <i class="fa fa-chevron-down"></i>
 				    </div>
                         <div class="dropdown-list-upload" style="">
-                            <input type="search" placeholder="Search employees" class="dropdown-search">
+                            <input type="search" placeholder="Buscar empleados" class="dropdown-search">
                             <ul class="dropdown-list-upload">
                             </ul>
                         </div>
 					</div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="UploadData()">Upload</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="UploadData()">Subir</button>
                 </div>
             </div>
         </div>
@@ -186,8 +173,8 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="duplicateTimeModalLabel">Duplicate punch period</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="duplicateTimeModalLabel">Período de acceso duplicado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <form>
@@ -198,8 +185,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="setDuplicateTime()">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="setDuplicateTime()">Guardar</button>
                 </div>
             </div>
         </div>
@@ -209,8 +196,8 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="pictureModalLabel">Configuracion de captura</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="pictureModalLabel">Configuración de captura</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <form>
@@ -227,8 +214,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="SetPhotoConfig()">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="SetPhotoConfig()">Guardar</button>
                 </div>
             </div>
         </div>
@@ -238,8 +225,8 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="enrollModalLabel">Enroll Employee</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="enrollModalLabel">Enrolar empleado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <form>
@@ -269,8 +256,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="EnrollEmployee()" >Enroll</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="EnrollEmployee()" >Enrolar</button>
                 </div>
             </div>
         </div>

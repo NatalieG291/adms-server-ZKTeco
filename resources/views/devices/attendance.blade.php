@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h2 class="mb-4">Attendance</h2>
+    <h2 class="mb-4">Asistencia</h2>
 
     @if(session('success'))
         <div class="alert alert-success">
@@ -16,8 +16,8 @@
                 <tr>
                     <th>ID</th>
                     <th>SN</th>
-                    <th>Employee ID</th>
-                    <th>Timestamp</th>
+                    <th>Clave de empleado</th>
+                    <th>Hora</th>
                     <th>Status 1</th>
                     <th>Status 2</th>
                     <th>Status 3</th>
