@@ -35,7 +35,7 @@
         </table>
     </div>
     <div class="d-felx justify-content-center">
-                {{ $d->links() }}  {{-- Tampilkan pagination jika ada --}}
+                {{ $employees->links() }}  {{-- Tampilkan pagination jika ada --}}
     </div>
     <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
