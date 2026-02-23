@@ -18,6 +18,12 @@ class EmployeeController extends Controller
         $page = (int) request()->get('page', 1);
         $start = ($page - 1) * $perPage;
         $end = $start + $perPage;
+        $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
+
+        $where = '';
+        if($busqueda !== '') {
+            $where = "AND (T.employee_id LIKE '%$busqueda%' OR name LIKE '%$busqueda%')";
+        }
 
         $sql = "SELECT t.id,t.employee_id,name,
                 case when pri = 0 then 'Empleado' 
@@ -56,11 +62,14 @@ class EmployeeController extends Controller
                   FROM employees
                 ) AS t
                 LEFT JOIN emp_photos ON T.employee_id = emp_photos.employee_id
-                WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+                WHERE rn BETWEEN ? AND ? ".$where."ORDER BY id DESC";
 
         $rows = DB::select($sql, [$start + 1, $end]);
 
-        $total = DB::table('employees')->count();
+        $total = DB::table('employees')
+                    ->where('employee_id', 'like', "%$busqueda%")
+                    ->orWhere('name', 'like', "%$busqueda%")
+                    ->count();
 
         $employees = new LengthAwarePaginator($rows, $total, $perPage, $page, [
             'path' => request()->url(),

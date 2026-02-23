@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container">
-        <h2>{{ $lable }}</h2>
+        <h2>Dispositivos</h2>
         <div class="btn-toolbar" role="toolbar">
             <div class="btn-group me-2" role="group">
                 <button type="button" class="btn btn-warning" onclick="RestartDevice()">Reiniciar</button>
@@ -33,10 +33,11 @@
         </div>
         <br><br>
         {{-- <a href="{{ route('devices.create') }}" class="btn btn-primary mb-3">Tambah Device</a> --}}
-        <table class="table table-bordered data-table" id="devices">
+        <table class="table table-bordered data-table table-hover align-middle" id="devices">
             <thead>
                 <tr>
                     <th></th>
+                    <th>Estado</th>
                     {{-- <th>No</th> --}}
                     <th>Número de Serie</th>
                     <th>Descripción</th>
@@ -57,6 +58,21 @@
                             <div>
                                 <input class="form-check-input" type="radio" name="selectedDevice" id="radioNoLabel{{ $d->id }}" value="{{ $d->id }}" aria-label="..." onchange="setCurrentSN('{{ $d->id }}')">
                             </div>
+                        </td>
+                        <td class="align-middle">
+                            @switch(strtolower($d->state ?? ''))
+                                @case('ok')
+                                    <img src="{{ asset('storage/state1.gif') }}" alt="Online" title="Online" style="width:20px;height:20px;">
+                                    @break
+                                @case('uploading')
+                                    <img src="{{ asset('storage/state4.gif') }}" alt="Offline" title="Offline" style="width:20px;height:20px;">
+                                    @break
+                                @case('downloading')
+                                    <img src="{{ asset('storage/state2.gif') }}" alt="Error" title="Error" style="width:20px;height:20px;">
+                                    @break
+                                @default
+                                    {{ $d->state }}
+                            @endswitch
                         </td>
                         {{-- <td>{{ $d->id }}</td> --}}
                         <td>{{ $d->no_sn }}</td>

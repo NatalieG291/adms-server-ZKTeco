@@ -16,14 +16,32 @@ class DeviceController extends Controller
     public function index(Request $request)
     {
         $data['lable'] = "Devices";
-        $data['log'] = DB::table('devices')
-            ->select('id','no_sn','descripcion','online', 'model', 'ip_address', 'transaction_count', 'user_count', 'fp_count', 'face_count', 'photo_count')
-            ->leftjoin('giro.supervisor_giro.lectores_adms',
-                DB::raw("devices.no_sn COLLATE SQL_Latin1_General_CP1_CI_AS"),
-                '=',
-                DB::raw("lectores_adms.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS")
-            )
-            ->orderBy('online', 'DESC')->get();
+        // $data['log'] = DB::table('devices')
+        //     ->select('id','no_sn','descripcion','online', 'model', 'ip_address', 'transaction_count', 'user_count', 'fp_count', 'face_count', 'photo_count')
+        //     ->leftjoin('giro.supervisor_giro.lectores_adms',
+        //         DB::raw("devices.no_sn COLLATE SQL_Latin1_General_CP1_CI_AS"),
+        //         '=',
+        //         DB::raw("lectores_adms.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS")
+        //     )
+
+        //     ->orderBy('online', 'DESC')->get();
+
+        $sql = "SELECT DEVICES.ID AS id, NO_SN AS no_sn, DESCRIPCION AS descripcion, ONLINE AS online, MODEL AS model, IP_ADDRESS AS ip_address, TRANSACTION_COUNT AS transaction_count, USER_COUNT AS user_count, FP_COUNT AS fp_count, FACE_COUNT AS face_count, PHOTO_COUNT AS photo_count, 
+                case 
+                    when command IS NULL THEN 'OK' 
+                    when command like '%DATA UPDATE%' THEN 'UPLOADING'
+                    when command like '%DATA QUERY%' THEN 'DOWNLOADING'
+                END AS state,
+                C.C_ID AS c_id
+                FROM DEVICES
+                LEFT JOIN GIRO.Supervisor_giro.Lectores_adms ON DEVICES.NO_SN COLLATE SQL_Latin1_General_CP1_CI_AS = lectores_adms.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS
+                LEFT JOIN (
+                    SELECT ID AS C_ID, DEVICE_ID, COMMAND, COMPLETED_AT, FAILED_AT, CREATED_AT, ROW_NUMBER() OVER (PARTITION BY DEVICE_ID ORDER BY CREATED_AT) AS ID 
+                    FROM DEVICE_COMMANDS 
+                    WHERE completed_at IS NULL and FAILED_AT IS NULL) C ON DEVICES.id = C.device_id AND C.ID = 1
+                GROUP BY DEVICES.ID, NO_SN, DESCRIPCION, ONLINE, MODEL, IP_ADDRESS, TRANSACTION_COUNT, USER_COUNT, FP_COUNT, FACE_COUNT, PHOTO_COUNT, DEVICE_ID, C.C_ID, command
+                order by online desc";
+        $data['log'] = DB::select($sql);
         return view('devices.index',$data);
     }
 
@@ -137,7 +155,7 @@ class DeviceController extends Controller
                 $q['data'] = '{}';
                 $q['created_at'] = now();
                 DB::table('device_commands')->insert($q);
-                sleep(2);
+
                 if($fp) {
                     $fpdata = DB::table('fingerprints')->where('pin', $employee->employee_id)->get();
                     foreach($fpdata as $fingerprint) {

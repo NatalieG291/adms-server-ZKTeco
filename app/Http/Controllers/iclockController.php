@@ -72,7 +72,8 @@ class iclockController extends Controller
             "TransFlag=1111000000\r\n" .
             "TimeZone={$timezone}\r\n" .   // ? ENVÍO DE ZONA HORARIA
             "Realtime=1\r\n" .
-            "Encrypt=0";
+            "Encrypt=0\r\n" .
+            "SupportPing=1";
 
         return $r;
     }
@@ -405,7 +406,7 @@ public function userpic(Request $request)
         Storage::disk('public')->put("userpic/$filename", $jpeg);
         DB::table('emp_photos')->updateOrInsert(
             ['employee_id' => $employee_id],
-            ['photo' => $filename, 'size' => $size, 'updated_at' => now()]
+            ['photo' => $base64, 'size' => $size, 'updated_at' => now()]
         );
 
         return "OK";
@@ -527,6 +528,7 @@ public function fdata(Request $request)
             ->where('device_id', $device->id)
             ->whereNull('executed_at')
             ->whereNull('failed_at')
+            ->orderBy('id', 'asc')
             ->first();
 
         if (!$cmd) {
@@ -627,5 +629,14 @@ public function fdata(Request $request)
     private function validateAndFormatInteger($value)
     {
         return isset($value) && $value !== '' ? (int)$value : null;
+    }
+    // ping
+    public function ping(Request $request) {
+        $sn = $request->input('SN');
+        DB::table('devices')->updateOrInsert(
+            ['no_sn' => $sn],
+            ['online' => now()]
+        );
+        return "OK";
     }
 }
