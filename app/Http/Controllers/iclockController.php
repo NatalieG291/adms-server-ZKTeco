@@ -335,8 +335,8 @@ public function receiveUser(Request $request)
     foreach ($lines as $line) {
         if (str_starts_with(trim($line), 'USER')) {
             preg_match('/PIN=(\d+)/', $line, $matches);
-            // Capture Name which can be single or multiple words until the next key (e.g., Pri=, Passwd=, Card=, etc.)
-            preg_match('/Name=(.+?)(?=\s+\w+=|$)/', $line, $nameMatches);
+            // Capture Name: can be single word, multi-word, or empty (zero or more chars until next key or end of line)
+            preg_match('/Name=(.*?)(?=\s+\w+=|$)/', $line, $nameMatches);
             preg_match('/Pri=(\d+)/', $line, $priMatches);
             preg_match('/Passwd=(\d+)/', $line, $passwdMatches);
             preg_match('/Card=(\d+)/', $line, $cardMatches);
@@ -348,9 +348,9 @@ public function receiveUser(Request $request)
             preg_match('/EndDatetime=(\d+)/', $line, $endDatetimeMatches);
             if (isset($matches[1])) {
                 $employee_id = $matches[1];
-                // Use the full captured Name (single or multi-word)
-                $name = isset($nameMatches[1]) ? trim($nameMatches[1]) : '';
                 $pri = isset($priMatches[1]) ? $priMatches[1] : null;
+                // Use Name if not empty, otherwise fallback to Pri value
+                $name = (isset($nameMatches[1]) && !empty(trim($nameMatches[1]))) ? trim($nameMatches[1]) : '';
                 $passwd = isset($passwdMatches[1]) ? $passwdMatches[1] : null;
                 $card = isset($cardMatches[1]) ? $cardMatches[1] : null;
                 $grp = isset($grpMatches[1]) ? $grpMatches[1] : null;
