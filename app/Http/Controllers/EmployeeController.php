@@ -20,34 +20,34 @@ class EmployeeController extends Controller
         $end = $start + $perPage;
 
         $sql = "SELECT t.id,t.employee_id,name,
-                case when pri = 0 then 'Employee' 
-                    when pri = 2 then 'Register' 
-                    when pri = 6 then 'System Administrator' 
-                    when pri = 10 then 'User Defined' 
-                    when pri = 14 then 'Super Admin'
+                case when pri = 0 then 'Empleado' 
+                    when pri = 2 then 'Registro' 
+                    when pri = 6 then 'Administrador del sistema' 
+                    when pri = 10 then 'Definido por el usuario' 
+                    when pri = 14 then 'Superadministrador'
                     end as pri,pri as pri_id,passwd,card,verify as verify_id,t.updated_at,
-                case when verify = -1 then 'User Defined' 
-                    when verify = 0 then 'Any' 
-                    when verify = 1 then 'Fingerprint' 
-                    when verify = 2 then 'UserID Only' 
-                    when verify = 3 then 'Password' 
-                    when verify = 4 then 'Card Only' 
-                    when verify = 5 then 'Fingerprint/Password' 
-                    when verify = 6 then 'Fingerprint/Card' 
-                    when verify = 7 then 'Card/Password'
-                    when verify = 8 then 'UserID & Fingerprint' 
-                    when verify = 9 then 'Fingerprint & Password' 
-                    when verify = 10 then 'Fingerprint & Card' 
-                    when verify = 11 then 'Password & Card' 
-                    when verify = 12 then 'Fingerprint & Password & Card' 
-                    when verify = 13 then 'UserID & Fingerprint & Password'
-                    when verify = 14 then 'Fingerprint & Card / UserID'
-                    when verify = 15 then 'Face Only'
-                    when verify = 16 then 'Face & Fingerprint'
-                    when verify = 17 then 'Face & Password'
-                    when verify = 18 then 'Face & Card'
-                    when verify = 19 then 'Face & Fingerprint & Card'
-                    when verify = 20 then 'Face & Fingerprint & Password'
+                case when verify = -1 then 'Definido por el usuario' 
+                    when verify = 0 then 'Cualquiera' 
+                    when verify = 1 then 'Huella dactilar' 
+                    when verify = 2 then 'Solo ID de usuario' 
+                    when verify = 3 then 'Contraseña' 
+                    when verify = 4 then 'Solo tarjeta' 
+                    when verify = 5 then 'Huella/Contraseña' 
+                    when verify = 6 then 'Huella/Tarjeta' 
+                    when verify = 7 then 'Tarjeta/Contraseña'
+                    when verify = 8 then 'ID de usuario y huella' 
+                    when verify = 9 then 'Huella y contraseña' 
+                    when verify = 10 then 'Huella y tarjeta' 
+                    when verify = 11 then 'Contraseña y tarjeta' 
+                    when verify = 12 then 'Huella, contraseña y tarjeta' 
+                    when verify = 13 then 'ID de usuario, huella y contraseña'
+                    when verify = 14 then 'Huella y tarjeta / ID de usuario'
+                    when verify = 15 then 'Solo rostro'
+                    when verify = 16 then 'Rostro y huella'
+                    when verify = 17 then 'Rostro y contraseña'
+                    when verify = 18 then 'Rostro y tarjeta'
+                    when verify = 19 then 'Rostro, huella y tarjeta'
+                    when verify = 20 then 'Rostro, huella y contraseña'
                     end as verify,
                 emp_photos.photo
                 FROM (
@@ -103,11 +103,11 @@ class EmployeeController extends Controller
                     ['photo' => $base64, 'size' => $size, 'updated_at' => now()]
                 );
 
-                return response()->json(['message' => 'Photo uploaded successfully', 'success' => true]);
+                return response()->json(['message' => 'Foto subida exitosamente', 'success' => true]);
             }
         }
 
-        return response()->json(['message' => 'Invalid photo upload'], 400);
+        return response()->json(['message' => 'Carga de foto inválida'], 400);
     }
 
     public function ListEmployees(Request $request)
@@ -186,6 +186,6 @@ class EmployeeController extends Controller
             }
         }
 
-        return response()->json(['message' => 'Employee data updated successfully']);
+        return response()->json(['message' => 'Datos del empleado actualizados exitosamente']);
     }
 }
