@@ -15,10 +15,10 @@
                 <tr>
                     <th>ID</th>
                     <th>SN</th>
-                    <th>Employee ID</th>
-                    <th>Timestamp</th>
-                    <th>Filename</th>
-                    <th>Size (bytes)</th>
+                    <th>Clave de empleado</th>
+                    <th>Hora</th>
+                    <th>Foto</th>
+                    <th>Tamaño (bytes)</th>
                 </tr>
             </thead>
             <tbody>
