@@ -1,8 +1,24 @@
 @extends('layouts.app')
 @section('content')
+<?php
+    $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
+?>
     <div class="container">
         <h2>Empleados</h2>
-        <br><br>
+        <div class="container mb-3">
+            <div class="row">
+                <div class="col-md-8"></div>
+                    <div class="col-6 col-md-4">
+                        <form method="get" action="">
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="busqueda" placeholder="Buscar" value="<?php echo htmlspecialchars($busqueda); ?>">
+                                <button  n class="btn btn-outline-secondary" type="submit">Buscar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
         <table class="table table-bordered data-table" id="employees">
             <thead>
                 <tr>
@@ -34,7 +50,7 @@
             </tbody>
         </table>
     </div>
-    <div class="d-felx justify-content-center">
+    <div class="d-flex justify-content-center">
                 {{ $employees->links() }}  {{-- Tampilkan pagination jika ada --}}
     </div>
     <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">

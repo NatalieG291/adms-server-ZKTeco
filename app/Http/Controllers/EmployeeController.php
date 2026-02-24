@@ -18,6 +18,15 @@ class EmployeeController extends Controller
         $page = (int) request()->get('page', 1);
         $start = ($page - 1) * $perPage;
         $end = $start + $perPage;
+        $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
+
+        $params = [];
+        $filterCondition = '';
+        if($busqueda !== '') {
+            $filterCondition = "WHERE (employee_id LIKE ? OR name LIKE ?)";
+            $params[] = "%$busqueda%";
+            $params[] = "%$busqueda%";
+        }
 
         $sql = "SELECT t.id,t.employee_id,name,
                 case when pri = 0 then 'Empleado' 
@@ -54,13 +63,19 @@ class EmployeeController extends Controller
                   SELECT id,employee_id,name,pri,pri as pri_id,passwd,card,[group],tz,verify,vice_card,start_datetime,end_datetime,updated_at,
                          ROW_NUMBER() OVER (ORDER BY id DESC) AS rn
                   FROM employees
+                  ".$filterCondition."
                 ) AS t
                 LEFT JOIN emp_photos ON T.employee_id = emp_photos.employee_id
                 WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+        $params[] = $start + 1;
+        $params[] = $end;
+        
+        $rows = DB::select($sql, $params);
 
-        $rows = DB::select($sql, [$start + 1, $end]);
-
-        $total = DB::table('employees')->count();
+        $total = DB::table('employees')
+                    ->where('employee_id', 'like', "%$busqueda%")
+                    ->orWhere('name', 'like', "%$busqueda%")
+                    ->count();
 
         $employees = new LengthAwarePaginator($rows, $total, $perPage, $page, [
             'path' => request()->url(),
