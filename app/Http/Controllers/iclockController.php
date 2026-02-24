@@ -9,6 +9,7 @@ use Iluminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\PDO;
+use Illuminate\Support\Facades\Http;
 
 class iclockController extends Controller
 {
@@ -393,8 +394,10 @@ public function userpic(Request $request)
         preg_match('/FileName=(.+\.jpg)/', $raw, $m1);
         preg_match('/Size=(\d+)/', $raw, $m2);
 
-        $employee_id = substr($m1[1] ?? '', strpos($m1[1],'-') + 1, 10); 
-        $employee_id = substr($employee_id, 0, strpos($employee_id, '.'));
+        //$employee_id = substr($m1[1] ?? '', strpos($m1[1],'-') + 1, 10); 
+        //$employee_id = substr($employee_id, 0, strpos($employee_id, '.'));
+        preg_match('/PIN=(\d+)/', $raw, $m3);
+        $employee_id = $m3[1];
 
         $filename = $m1[1] ?? ($employee_id . '.jpg');
         $size = intval($m2[1] ?? 0);
@@ -474,6 +477,7 @@ public function fdata(Request $request)
         $fp_count = isset($infoParts[2]) ? $infoParts[2] : null;
         $log_count = isset($infoParts[3]) ? $infoParts[3] : null;
         $ip_address = isset($infoParts[4]) ? $infoParts[4] : null;
+        $fc_count = isset($infoParts[8]) ? $infoParts[8] : null;
         $photo_count = isset($infoParts[12]) ? $infoParts[12] : null;
 
         $device = DB::table('devices')->where('no_sn', $sn)->first();
@@ -488,6 +492,7 @@ public function fdata(Request $request)
                     'fw_version' => $fw,
                     'user_count' => $usr_count,
                     'fp_count' => $fp_count,
+                    'face_count' => $fc_count,
                     'transaction_count' => $log_count,
                     'ip_address' => $ip_address,
                     'photo_count' => $photo_count,
@@ -524,105 +529,167 @@ public function fdata(Request $request)
 
         }
 
-        $cmd = DB::table('device_commands')
+        // $cmd = DB::table('device_commands')
+        //     ->where('device_id', $device->id)
+        //     ->whereNull('executed_at')
+        //     ->whereNull('failed_at')
+        //     ->orderBy('id', 'asc')
+        //     ->first();
+
+        $pending = DB::table('device_commands')
             ->where('device_id', $device->id)
-            ->whereNull('executed_at')
+            ->whereNull('completed_at')
             ->whereNull('failed_at')
             ->orderBy('id', 'asc')
-            ->first();
+            ->limit(50) // no abuses
+            ->get();
+
+        $maxSize = 1048576; // 1 MB
+        $currentSize = 0;
+        $lines = [];
+        $counter = 1;
+        $cmd = null;
+
+        foreach ($pending as $cmd) {
+
+            $line = "C:{$cmd->id}:{$cmd->command}\n";
+            $lineSize = strlen($line);
+            DB::table('device_commands')
+                ->where('id', $cmd->id)
+                ->update([
+                    'executed_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            if ($currentSize + $lineSize > $maxSize) {
+                break; // no meter más
+            }
+
+            $lines[] = $line;
+            $currentSize += $lineSize;
+            $counter++;
+        }
+
+        $payload = implode("", $lines);
 
         if (!$cmd) {
             return "OK";
         }
 
-        DB::table('device_commands')
-            ->where('id', $cmd->id)
-            ->update([
-                'executed_at' => now(),
-                'updated_at' => now(),
-            ]);
+        // return "C:{$cmd->id}:{$cmd->command}";
 
-        return "C:{$cmd->id}:{$cmd->command}";
+        return $payload;
     }
-    public function deviceCmdResponse(Request $request)
-    {
+    public function getInfo(Request $request) {
         $sn = $request->input('SN');
-        $id = preg_match('/ID=(\d+)/', $request->getContent(), $m) ? $m[1] : null;
-        $return = preg_match('/Return=(\d+)/', $request->getContent(), $m2) ? $m2[1] : null;
-        $cmd = preg_match('/CMD=([\s\S]+)/', $request->getContent(), $m3) ? $m3[1] : null;
-
-        if (!$id) {
-            return "OK";
-        }
-
+        preg_match('/ID=(\d+)/', $request->getContent(), $m);
+        $id = $m[1];
+        $cmd1 = preg_match('/CMD=([\s\S]+)/', $request->getContent(), $m3) ? $m3[1] : null;
         $device = DB::table('devices')->where('no_sn', $sn)->first();
-        if (!$device) {
-            return "OK";
-        }
-
-        // Buscar comando
-        $command = DB::table('device_commands')
-            ->where('id', $id)
-            ->where('device_id', $device->id)
-            ->first();
-
-        if (!$command) {
-            return "OK";
-        }
-
-        // Return = 0 ? ejecutado correctamente
-        if ($return == "0") {
+        if(str_contains($cmd1, 'DeviceName')) {
             DB::table('device_commands')
                 ->where('id', $id)
                 ->update([
                     'completed_at' => now(),
-                    'response' => $cmd,
+                    'response' => $cmd1,
                     'updated_at' => now(),
                 ]);
 
-            if(str_contains($cmd, 'DeviceName')) {
-                $data = explode(chr(10), $cmd);
-                preg_match('/DeviceName=(.+)/', $cmd, $m);
-                $name = trim($m[1] ?? '');
-                preg_match('/TransactionCount=(\d+)/', $cmd, $m2);
-                $transactionCount = intval($m2[1] ?? 0);
-                preg_match('/UserCount=(\d+)/', $cmd, $m3);
-                $userCount = intval($m3[1] ?? 0);
-                preg_match('/FPCount=(\d+)/', $cmd, $m4);
-                $fpCount = intval($m4[1] ?? 0);
-                preg_match('/(?<!Max)FaceCount=(\d+)/', $cmd, $faceCountMatch);
-                $faceCount = intval($faceCountMatch[1] ?? 0);
-                preg_match('/IPAddress=(.+)/', $cmd, $m6);
-                $ip = trim($m6[1] ?? '');
-                preg_match('/FWVersion=(.+)/', $cmd, $m7);
-                $fw = trim($m7[1] ?? '');
-                preg_match('/PushVersion=(.+)/', $cmd, $m8);
-                $push = trim($m8[1] ?? '');
-                DB::table('devices')
-                    ->where('id', $device->id)
+            $data = explode(chr(10), $cmd1);
+            preg_match('/DeviceName=(.+)/', $cmd1, $m);
+            $name = trim($m[1] ?? '');
+            preg_match('/TransactionCount=(\d+)/', $cmd1, $m2);
+            $transactionCount = intval($m2[1] ?? 0);
+            preg_match('/UserCount=(\d+)/', $cmd1, $m3);
+            $userCount = intval($m3[1] ?? 0);
+            preg_match('/FPCount=(\d+)/', $cmd1, $m4);
+            $fpCount = intval($m4[1] ?? 0);
+            preg_match('/(?<!Max)FaceCount=(\d+)/', $cmd1, $faceCountMatch);
+            $faceCount = intval($faceCountMatch[1] ?? 0);
+            preg_match('/IPAddress=(.+)/', $cmd1, $m6);
+            $ip = trim($m6[1] ?? '');
+            preg_match('/FWVersion=(.+)/', $cmd1, $m7);
+            $fw = trim($m7[1] ?? '');
+            preg_match('/PushVersion=(.+)/', $cmd1, $m8);
+            $push = trim($m8[1] ?? '');
+            DB::table('devices')
+                ->where('id', $device->id)
+                ->update([
+                    'model' => $name,
+                    'transaction_count' => $transactionCount,
+                    'user_count' => $userCount,
+                    'fp_count' => $fpCount,
+                    'face_count' => $faceCount,
+                    'ip_address' => $ip,
+                    'fw_version' => $fw,
+                    'push_version' => $push,
+                    'updated_at' => now(),
+                ]);
+            return "OK";
+        }
+    }
+    public function deviceCmdResponse(Request $request)
+    {
+        $sn = $request->input('SN');
+
+        $raw = $request->getContent();
+        $tokens = preg_split('/\s+/', $raw);
+        $records = array_chunk($tokens, 10);
+
+        $lines = preg_split('/\r?\n/', trim($raw));
+
+        foreach ($lines as $line) {
+            preg_match('/ID=(\d+)/', $line, $m);
+            preg_match('/Return=(-?\d+)/', $line, $m2);
+            preg_match('/CMD=(.+)/', $line, $m3);
+
+            $id = $m[1];
+            $return = $m2[1];
+            $cmd = $m3[1];
+
+            if(str_contains($cmd, "INFO")) {
+                return $this->getInfo($request);
+            }
+
+            if (!$id) {
+                return "OK";
+            }
+
+            $device = DB::table('devices')->where('no_sn', $sn)->first();
+            if (!$device) {
+                return "OK";
+            }
+
+            $command = DB::table('device_commands')
+                ->where('id', $id)
+                ->where('device_id', $device->id)
+                ->first();
+
+            if (!$command) {
+                return "OK";
+            }
+
+            if ($return == "0") {
+                DB::table('device_commands')
+                    ->where('id', $id)
                     ->update([
-                        'model' => $name,
-                        'transaction_count' => $transactionCount,
-                        'user_count' => $userCount,
-                        'fp_count' => $fpCount,
-                        'face_count' => $faceCount,
-                        'ip_address' => $ip,
-                        'fw_version' => $fw,
-                        'push_version' => $push,
+                        'completed_at' => now(),
+                        'response' => $cmd,
+                        'updated_at' => now(),
+                    ]);
+
+                }
+            else {
+                DB::table('device_commands')
+                    ->where('id', $id)
+                    ->update([
+                        'failed_at' => now(),
+                        'response' => $cmd,
                         'updated_at' => now(),
                     ]);
             }
-        } else {
-            DB::table('device_commands')
-                ->where('id', $id)
-                ->update([
-                    'failed_at' => now(),
-                    'response' => $cmd,
-                    'updated_at' => now(),
-                ]);
-        }
 
-        // Respuesta estándar
+        }
         return "OK";
     }
 

@@ -20,9 +20,12 @@ class EmployeeController extends Controller
         $end = $start + $perPage;
         $busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
 
-        $where = '';
+        $params = [];
+        $filterCondition = '';
         if($busqueda !== '') {
-            $where = "AND (T.employee_id LIKE '%$busqueda%' OR name LIKE '%$busqueda%')";
+            $filterCondition = "WHERE (employee_id LIKE ? OR name LIKE ?)";
+            $params[] = "%$busqueda%";
+            $params[] = "%$busqueda%";
         }
 
         $sql = "SELECT t.id,t.employee_id,name,
@@ -60,11 +63,14 @@ class EmployeeController extends Controller
                   SELECT id,employee_id,name,pri,pri as pri_id,passwd,card,[group],tz,verify,vice_card,start_datetime,end_datetime,updated_at,
                          ROW_NUMBER() OVER (ORDER BY id DESC) AS rn
                   FROM employees
+                  ".$filterCondition."
                 ) AS t
                 LEFT JOIN emp_photos ON T.employee_id = emp_photos.employee_id
-                WHERE rn BETWEEN ? AND ? ".$where."ORDER BY id DESC";
-
-        $rows = DB::select($sql, [$start + 1, $end]);
+                WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+        $params[] = $start + 1;
+        $params[] = $end;
+        
+        $rows = DB::select($sql, $params);
 
         $total = DB::table('employees')
                     ->where('employee_id', 'like', "%$busqueda%")
