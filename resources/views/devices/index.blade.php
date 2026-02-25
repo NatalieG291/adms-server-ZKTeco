@@ -61,14 +61,17 @@
                         </td>
                         <td class="align-middle">
                             @switch(strtolower($d->state ?? ''))
+                                @case('offline')
+                                    <img src="{{ asset('storage/state3.gif') }}" alt="Offline" title="Offline" style="width:15px;height:15px;">
+                                    @break
                                 @case('ok')
-                                    <img src="{{ asset('storage/state1.gif') }}" alt="Online" title="Online" style="width:20px;height:20px;">
+                                    <img src="{{ asset('storage/state1.gif') }}" alt="Online" title="Online" style="width:15px;height:15px;">
                                     @break
                                 @case('uploading')
-                                    <img src="{{ asset('storage/state4.gif') }}" alt="Offline" title="Offline" style="width:20px;height:20px;">
+                                    <img src="{{ asset('storage/state4.gif') }}" alt="syncUp" title="syncUp" style="width:15px;height:15px;">
                                     @break
                                 @case('downloading')
-                                    <img src="{{ asset('storage/state2.gif') }}" alt="Error" title="Error" style="width:20px;height:20px;">
+                                    <img src="{{ asset('storage/state2.gif') }}" alt="syncDown" title="syncDowm" style="width:15px;height:15px;">
                                     @break
                                 @default
                                     {{ $d->state }}
