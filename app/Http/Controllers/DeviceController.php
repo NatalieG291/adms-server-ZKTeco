@@ -28,6 +28,7 @@ class DeviceController extends Controller
 
         $sql = "SELECT DEVICES.ID AS id, NO_SN AS no_sn, DESCRIPCION AS descripcion, ONLINE AS online, MODEL AS model, IP_ADDRESS AS ip_address, TRANSACTION_COUNT AS transaction_count, USER_COUNT AS user_count, FP_COUNT AS fp_count, FACE_COUNT AS face_count, PHOTO_COUNT AS photo_count, 
                 case 
+                    when DATEDIFF(MINUTE, online, GETDATE()) > 10 THEN 'OFFLINE'
                     when command IS NULL THEN 'OK' 
                     when command like '%DATA UPDATE%' THEN 'UPLOADING'
                     when command like '%DATA QUERY%' THEN 'DOWNLOADING'
