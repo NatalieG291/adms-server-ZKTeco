@@ -3,26 +3,28 @@
 @section('content')
     <div class="container">
         <h2>Log Finger</h2>
-        <table class="table table-bordered data-table" id="fingers-log">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Url</th>
-                    <th>Data</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($logs as $d)
+        <div class="table-responsive">
+            <table class="table table-bordered data-table" id="fingers-log">
+                <thead>
                     <tr>
-                        <td>{{ $d->id }}</td>
-                        <td>{{ $d->url }}</td>
-                        <td>{{ $d->data }}</td>
+                        <th>Id</th>
+                        <th>Url</th>
+                        <th>Data</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
-    <div class="d-felx justify-content-center">
-        {{ $logs->links() }}  {{-- Tampilkan pagination jika ada --}}
+                </thead>
+                <tbody>
+                    @foreach ($logs as $d)
+                        <tr>
+                            <td>{{ $d->id }}</td>
+                            <td>{{ $d->url }}</td>
+                            <td>{{ $d->data }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    <div class="d-flex justify-content-center">
+        {{ $logs->onEachSide(1)->links() }}  {{-- Tampilkan pagination jika ada --}}
     </div>
     </div>
 @endsection

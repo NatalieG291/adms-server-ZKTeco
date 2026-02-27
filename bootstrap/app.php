@@ -15,6 +15,20 @@ $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
+
+/*
+---------------
+Permissions
+---------------
+*/
+// $app->withMiddleware(function (Middleware $middleware) {
+//         $middleware->alias([
+//             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+//             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+//             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+//         ]);
+//     });
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces

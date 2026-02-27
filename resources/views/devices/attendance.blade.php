@@ -15,14 +15,14 @@
             <thead class="thead-dark">
                 <tr>
                     <th>ID</th>
-                    <th>SN</th>
+                    <th class="d-none d-xl-table-cell">SN</th>
                     <th>Clave de empleado</th>
                     <th>Hora</th>
                     <th>Status 1</th>
-                    <th>Status 2</th>
-                    <th>Status 3</th>
-                    <th>Status 4</th>
-                    <th>Status 5</th>
+                    <th class="d-none d-xl-table-cell">Status 2</th>
+                    <th class="d-none d-xl-table-cell">Status 3</th>
+                    <th class="d-none d-xl-table-cell">Status 4</th>
+                    <th class="d-none d-xl-table-cell">Status 5</th>
                     
                 </tr>
             </thead>
@@ -30,14 +30,14 @@
                 @foreach($attendances as $attendance)
                     <tr>
                         <td>{{ $attendance->id }}</td>
-                        <td>{{ $attendance->sn }}</td>
+                        <td class="d-none d-xl-table-cell">{{ $attendance->sn }}</td>
                         <td>{{ $attendance->employee_id }}</td>
                         <td>{{ $attendance->timestamp }}</td>
                         <td>{{ $attendance->status1 }}</td>
-                        <td>{{ $attendance->status2 }}</td>
-                        <td>{{ $attendance->status3 }}</td>
-                        <td>{{ $attendance->status4 }}</td>
-                        <td>{{ $attendance->status5 }}</td>
+                        <td class="d-none d-xl-table-cell">{{ $attendance->status2 }}</td>
+                        <td class="d-none d-xl-table-cell">{{ $attendance->status3 }}</td>
+                        <td class="d-none d-xl-table-cell">{{ $attendance->status4 }}</td>
+                        <td class="d-none d-xl-table-cell">{{ $attendance->status5 }}</td>
 
                     </tr>
                 @endforeach
@@ -46,8 +46,8 @@
     </div>
     
     <!-- source: https://stackoverflow.com/a/70119390 -->
-    <div class="d-felx justify-content-center">
-                {{ $attendances->links() }}  {{-- Tampilkan pagination jika ada --}}
+    <div class="d-flex justify-content-center">
+                {{ $attendances->onEachSide(1)->links() }}  {{-- Tampilkan pagination jika ada --}}
                     </div>
 
 
