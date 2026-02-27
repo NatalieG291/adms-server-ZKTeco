@@ -323,9 +323,9 @@
                             <select class="form-select" aria-label="Photo configuration" id="photoConfig">
                                 <option value="0">Sin foto</option>
                                 <option value="1">Capturar foto pero no guardar</option>
-                                <option value="2">Verificar foto y guardar</option>
-                                <option value="3">Verificacion exitosa y guardar</option>
-                                <option value="4">Guardar</option>
+                                <option value="2">Tomar foto y guardar</option>
+                                <option value="3">Guardar en verificacion correcta</option>
+                                <option value="4">Guardar en verificacion fallida</option>
                             </select>
                         </div>
                     </form>

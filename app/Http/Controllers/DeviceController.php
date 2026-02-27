@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Device;
 use App\Models\Attendance;
 use DB;
+use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Storage;
 
@@ -294,24 +295,77 @@ class DeviceController extends Controller
         ]);
         return view('devices.finger',compact('logs'));
     }
-    public function Attendance()
+    public function Attendance(Request $request)
     {
         $perPage = 15;
+
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $startTime = $request->get('start_time');
+        $endTime = $request->get('end_time');
+
+        $selectCols = 'id, sn, employee_id, timestamp, status1';
+        $whereSql = '';
+        $bindings = [];
+
+        if ($startDate || $endDate) {
+            $startDatetime = $startDate ? ($startDate . ' ' . ($startTime ?: '00:00:00')) : null;
+            $endDatetime = $endDate ? ($endDate . ' ' . ($endTime ?: '23:59:59')) : null;
+            if ($startDatetime && $endDatetime) {
+                $whereSql = 'WHERE timestamp BETWEEN ? AND ?';
+                $bindings = [$startDatetime, $endDatetime];
+            } elseif ($startDatetime) {
+                $whereSql = 'WHERE timestamp >= ?';
+                $bindings = [$startDatetime];
+            } elseif ($endDatetime) {
+                $whereSql = 'WHERE timestamp <= ?';
+                $bindings = [$endDatetime];
+            }
+        } else {
+            if ($startTime && $endTime) {
+                $whereSql = 'WHERE CONVERT(time, timestamp) BETWEEN ? AND ?';
+                $bindings = [$startTime, $endTime];
+            }
+        }
+
+        if ($request->get('export')) {
+            $sqlExport = "SELECT l.descripcion, employee_id, timestamp, status1 FROM attendances a LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . " ORDER BY id DESC";
+            $rows = DB::select($sqlExport, $bindings);
+            $filename = 'attendances_' . now()->format('Ymd_His') . '.csv';
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => "attachment; filename=\"$filename\"",
+            ];
+
+            $callback = function() use ($rows) {
+                $out = fopen('php://output', 'w');
+                fputcsv($out, ['lector', 'Clave Empleado', 'Fecha y hora', 'Metodo checada']);
+                foreach ($rows as $r) {
+                    $ts = isset($r->timestamp) ? Carbon::parse($r->timestamp)->format('Y-m-d H:i:s') : '';
+                    fputcsv($out, [
+                        $r->descripcion,
+                        $r->employee_id,
+                        $ts,
+                        $r->status1,
+                    ]);
+                }
+                fclose($out);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
+
         $page = (int) request()->get('page', 1);
         $start = ($page - 1) * $perPage;
         $end = $start + $perPage;
 
-        $sql = "SELECT id,sn,[table],stamp,employee_id,timestamp,status1,status2,status3,status4,status5
-                FROM (
-                  SELECT id,sn,[table],stamp,employee_id,timestamp,status1,status2,status3,status4,status5,
-                         ROW_NUMBER() OVER (ORDER BY id DESC) AS rn
-                  FROM attendances
-                ) AS t
-                WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+        $sql = "SELECT $selectCols FROM (SELECT $selectCols, ROW_NUMBER() OVER (ORDER BY id DESC) AS rn FROM attendances " . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
 
-        $rows = DB::select($sql, [$start + 1, $end]);
+        $rows = DB::select($sql, array_merge($bindings, [$start + 1, $end]));
 
-        $total = DB::table('attendances')->count();
+        $countSql = "SELECT COUNT(*) AS cnt FROM attendances " . ($whereSql ? ' ' . $whereSql : '');
+        $countRow = DB::selectOne($countSql, $bindings);
+        $total = $countRow ? (int) $countRow->cnt : 0;
 
         $attendances = new LengthAwarePaginator($rows, $total, $perPage, $page, [
             'path' => request()->url(),

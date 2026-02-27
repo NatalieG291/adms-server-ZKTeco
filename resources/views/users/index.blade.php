@@ -60,7 +60,7 @@
                                 </div>
                                 <div class="col-md-12">
                                     <label for="userPasswd" class="form-label">Contraseña</label>
-                                    <input type="text" class="form-control" id="userPasswd" name="passwd">
+                                    <input type="password" class="form-control" id="userPasswd" name="passwd">
                                 </div>
                                 <div class="col-md-12">
                                     <div class="dropdown-container" id="permissionsSelect">

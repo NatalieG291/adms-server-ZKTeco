@@ -4,6 +4,29 @@
 <div class="container">
     <h2 class="mb-4">Asistencia</h2>
 
+    <form method="GET" class="row g-2 mb-3">
+        <div class="col-auto">
+            <label class="form-label">Fecha inicio</label>
+            <input type="date" name="start_date" class="form-control" value="{{ request('start_date') }}">
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Hora inicio</label>
+            <input type="time" name="start_time" class="form-control" value="{{ request('start_time') }}">
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Fecha fin</label>
+            <input type="date" name="end_date" class="form-control" value="{{ request('end_date') }}">
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Hora fin</label>
+            <input type="time" name="end_time" class="form-control" value="{{ request('end_time') }}">
+        </div>
+        <div class="col-auto align-self-end">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <button type="submit" name="export" value="1" class="btn btn-success">Exportar a Excel</button>
+        </div>
+    </form>
+
     @if(session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
@@ -19,10 +42,6 @@
                     <th>Clave de empleado</th>
                     <th>Hora</th>
                     <th>Status 1</th>
-                    <th class="d-none d-xl-table-cell">Status 2</th>
-                    <th class="d-none d-xl-table-cell">Status 3</th>
-                    <th class="d-none d-xl-table-cell">Status 4</th>
-                    <th class="d-none d-xl-table-cell">Status 5</th>
                     
                 </tr>
             </thead>
@@ -34,10 +53,6 @@
                         <td>{{ $attendance->employee_id }}</td>
                         <td>{{ $attendance->timestamp }}</td>
                         <td>{{ $attendance->status1 }}</td>
-                        <td class="d-none d-xl-table-cell">{{ $attendance->status2 }}</td>
-                        <td class="d-none d-xl-table-cell">{{ $attendance->status3 }}</td>
-                        <td class="d-none d-xl-table-cell">{{ $attendance->status4 }}</td>
-                        <td class="d-none d-xl-table-cell">{{ $attendance->status5 }}</td>
 
                     </tr>
                 @endforeach
