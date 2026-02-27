@@ -134,12 +134,12 @@
                         @auth
                         <th class="d-none d-xl-table-cell">Modelo</th>
                         <th class="d-none d-xl-table-cell">Dirección IP</th>
-                        @endauth
                         <th>Número de transacciones</th>
                         <th>Fotos de asistencia</th>
                         <th>Número de usuarios</th>
                         <th>Conteo de huellas</th>
                         <th>Conteo de rostros</th>
+                        @endauth
                         <th>En línea</th>
                     </tr>
                 </thead>
@@ -179,12 +179,12 @@
                             @auth
                             <td class="d-none d-xl-table-cell">{{ $d->model }}</td>
                             <td class="d-none d-xl-table-cell">{{ $d->ip_address }}</td>
-                            @endauth
                             <td>{{ $d->transaction_count }}</td>
                             <td>{{ $d->photo_count }}
                             <td>{{ $d->user_count }}</td>
                             <td>{{ $d->fp_count }}</td>
                             <td>{{ $d->face_count }}</td>
+                            @endauth
                             <td>{{ $d->online }}</td>
                         </tr>
                     @endforeach
