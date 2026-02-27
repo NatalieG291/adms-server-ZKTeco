@@ -17,9 +17,16 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\AbsensiSholatController;
 use App\Http\Controllers\iclockController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UsersController;
 
 
 Route::get('devices', [DeviceController::class, 'Index'])->name('devices.index');
+
+Route::get('/users', [UsersController::class, 'Index'])->name('users.index')->middleware('auth');
+Route::get('get-user-permissions', [UsersController::class, 'getUserPermissions'])->name('users.get-user-permissions')->middleware('auth');
+Route::post('new-user', [UsersController::class, 'store'])->name('users.new-user')->middleware('auth');
+Route::post('drop-user', [UsersController::class, 'destroy'])->name('users.drop-user');
+
 Route::get('devices-log', [DeviceController::class, 'DeviceLog'])->name('devices.DeviceLog')->middleware('auth');
 Route::get('finger-log', [DeviceController::class, 'FingerLog'])->name('devices.FingerLog')->middleware('auth');
 Route::get('attendance', [DeviceController::class, 'Attendance'])->name('devices.Attendance')->middleware('auth');

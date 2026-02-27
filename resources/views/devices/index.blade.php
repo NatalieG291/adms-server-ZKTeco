@@ -3,96 +3,194 @@
 @section('content')
     <div class="container">
         <h2>Dispositivos</h2>
-        <div class="btn-toolbar" role="toolbar">
+        <!-- xxl toolbar -->
+        <div class="btn-toolbar d-none d-lg-flex d-xl-flex" role="toolbar">
+            @can('device-reboot')
             <div class="btn-group me-2" role="group">
                 <button type="button" class="btn btn-warning" onclick="RestartDevice()">Reiniciar</button>
             </div>
-            <div class="btn-group me-2" role="group" aria-label="Basic outlined example" style="display: block !important;">
+            @endcan
+            @canany(['device-clear-admin', 'device-clear-data', 'device-clear-log'])
+            <div class="btn-group me-2" role="group" aria-label="Basic outlined example">
                 <button id=btnGroupDrop1 type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     Borrar datos
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                    @can('device-clear-admin')
                     <li><a class="link-danger dropdown-item" onclick="ClearAdmin()">Borrar administrador</a></li>
+                    @endcan
+                    @can('device-clear-data')
                     <li><a class="link-danger dropdown-item" onclick="DeleteData()">Borrar datos</a></li>
+                    @endcan
+                    @can('device-clear-log')
                     <li><a class="link-dark dropdown-item" onclick="ClearLog()">Borrar registro</a></li>
+                    @endcan
                 </ul>
             </div>
-            <div class="btn-group me-2" role="group" aria-label="Basic outlined example" style="display: block !important;">
+            @endcanany
+            @canany(['device-capture-setting', 'device-punch-period'])
+            <div class="btn-group me-2" role="group" aria-label="Basic outlined example">
                 <button id=btnGroupDrop1 type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     Configuración del Dispositivo
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                    @can('device-capture-setting')
                     <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#pictureModal">Configuración de captura</a></li>
+                    @endcan
+                    @can('device-punch-period')
                     <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#duplicateTimeModal">Período de acceso duplicado</a></li>
+                    @endcan
                 </ul>
             </div>
+            @endcanany
+            @can('device-remote-enroll')
             <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#enrollModal">Enrolamiento remoto</button>
-            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#downloadData">Descargar datos de usuario</button>
-            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#uploadData">Subir datos de usuario</button>
-            
+            @endcan
+            @can('device-download-data')
+            <button type="button" class="btn btn-primary me-2 d-none d-xl-block d-xxl-none" data-bs-toggle="modal" data-bs-target="#downloadData">Descargar datos de usuario</button>
+            @endcan
+            @can('device-upload-data')
+            <button type="button" class="btn btn-primary me-2 d-none d-xl-block d-xxl-none" data-bs-toggle="modal" data-bs-target="#uploadData">Subir datos de usuario</button>
+            @endcan
+            @canany(['device-download-data', 'device-upload-data'])
+            <div class="btn-group me-2 d-lg-none d-xxl-block" role="group" >
+                <button id="userdata" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    Datos de usuarios
+                </button>
+                <ul class="dropdown-menu">
+                    @can('device-download-data')
+                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#downloadData">Descargar datos de usuario</a></li>
+                    @endcan
+                    @can('device-upload-data')
+                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadData">Subir datos de usuario</a></li>
+                    @endcan
+                </ul>
+            </div>
+            @endcanany
         </div>
+        <!--  -->
+        <div class="btn-toolbar d-xs-block d-md-block d-lg-none" role="toolbar">
+            <div class="dropdown">
+                <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false">
+                    Acciones
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                    @can('device-reboot')
+                        <li><button class="dropdown-item bg-warning" type="button" onclick="RestartDevice()">Reiniciar</button></li>
+                    @endcan
+                    @canany(['device-clear-admin', 'device-clear-data', 'device-clear-log'])
+                    <li><hr class="dropdown-divider"></li>
+                    @can('device-clear-admin')
+                    <li><button class="dropdown-item" type="button" onclick="ClearAdmin()">Borrar administrador</button></li>
+                    @endcan
+                    @can('device-clear-data')
+                    <li><button class="dropdown-item bg-danger text-white" type="button" onclick="DeleteData()">Borrar datos</button></li>
+                    @endcan
+                    @can('device-clear-log')
+                    <li><button class="dropdown-item" type="button" onclick="ClearLog()">Borrar registro</button></li>
+                    @endcan
+                    @endcanany
+                    @canany(['device-capture-setting', 'device-punch-period'])
+                    <li><hr class="dropdown-divider"></li>
+                    @can('device-capture-setting')
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#pictureModal">Configuracion de captura</button></li>
+                    @endcan
+                    @can('device-punch-period')
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#duplicateTimeModal">Periodo de acceso duplicado</button></li>
+                    @endcan
+                    @endcanany
+                    @can('device-remote-enroll')
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#enrollModal">Enrolamiento remoto</button></li>
+                    @endcan
+                    @canany(['device-download-data', 'device-upload-data'])
+                    <li><hr class="dropdown-divider"></li>
+                    @can('device-download-data')
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#downloadData">Descargar datos de usuario</button></li>
+                    @endcan
+                    @can('device-upload-data')
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#uploadData">Subir datos de usuario</button></li>
+                    @endcan
+                    @endcanany
+                </ul>
+            </div>
+        </div>
+        
         <br><br>
         {{-- <a href="{{ route('devices.create') }}" class="btn btn-primary mb-3">Tambah Device</a> --}}
-        <table class="table table-bordered data-table table-hover align-middle" id="devices">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Estado</th>
-                    {{-- <th>No</th> --}}
-                    <th>Número de Serie</th>
-                    <th>Descripción</th>
-                    <th>Modelo</th>
-                    <th>Dirección IP</th>
-                    <th>Número de transacciones</th>
-                    <th>Fotos de asistencia</th>
-                    <th>Número de usuarios</th>
-                    <th>Conteo de huellas</th>
-                    <th>Conteo de rostros</th>
-                    <th>En línea</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($log as $d)
-                    <tr onclick="document.getElementById('radioNoLabel{{ $d->id }}').checked = true; setCurrentSN('{{ $d->id }}')">
-                        <td>
-                            <div>
-                                <input class="form-check-input" type="radio" name="selectedDevice" id="radioNoLabel{{ $d->id }}" value="{{ $d->id }}" aria-label="..." onchange="setCurrentSN('{{ $d->id }}')">
-                            </div>
-                        </td>
-                        <td class="align-middle">
-                            @switch(strtolower($d->state ?? ''))
-                                @case('offline')
-                                    <img src="{{ asset('storage/state3.gif') }}" alt="Offline" title="Offline" style="width:15px;height:15px;">
-                                    @break
-                                @case('ok')
-                                    <img src="{{ asset('storage/state1.gif') }}" alt="Online" title="Online" style="width:15px;height:15px;">
-                                    @break
-                                @case('uploading')
-                                    <img src="{{ asset('storage/state4.gif') }}" alt="syncUp" title="syncUp" style="width:15px;height:15px;">
-                                    @break
-                                @case('downloading')
-                                    <img src="{{ asset('storage/state2.gif') }}" alt="syncDown" title="syncDowm" style="width:15px;height:15px;">
-                                    @break
-                                @default
-                                    {{ $d->state }}
-                            @endswitch
-                        </td>
-                        {{-- <td>{{ $d->id }}</td> --}}
-                        <td>{{ $d->no_sn }}</td>
-                        <td>{{ $d->descripcion }}</td>
-                        <td>{{ $d->model }}</td>
-                        <td>{{ $d->ip_address }}</td>
-                        <td>{{ $d->transaction_count }}</td>
-                        <td>{{ $d->photo_count }}
-                        <td>{{ $d->user_count }}</td>
-                        <td>{{ $d->fp_count }}</td>
-                        <td>{{ $d->face_count }}</td>
-                        <td>{{ $d->online }}</td>
+        <div class="table-responsive">
+            <table class="table table-bordered data-table table-hover align-middle" id="devices">
+                <thead>
+                    <tr>
+                        @auth
+                        <th></th>
+                        @endauth
+                        <th>Estado</th>
+                        {{-- <th>No</th> --}}
+                        @auth
+                        <th class="d-none d-xl-table-cell">Número de Serie</th>
+                        @endauth
+                        <th>Descripción</th>
+                        @auth
+                        <th class="d-none d-xl-table-cell">Modelo</th>
+                        <th class="d-none d-xl-table-cell">Dirección IP</th>
+                        @endauth
+                        <th>Número de transacciones</th>
+                        <th>Fotos de asistencia</th>
+                        <th>Número de usuarios</th>
+                        <th>Conteo de huellas</th>
+                        <th>Conteo de rostros</th>
+                        <th>En línea</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
-
+                </thead>
+                <tbody>
+                    @foreach ($log as $d)
+                        <tr onclick="document.getElementById('radioNoLabel{{ $d->id }}').checked = true; setCurrentSN('{{ $d->id }}')">
+                            @auth
+                            <td>
+                                <div>
+                                    <input class="form-check-input" type="radio" name="selectedDevice" id="radioNoLabel{{ $d->id }}" value="{{ $d->id }}" aria-label="..." onchange="setCurrentSN('{{ $d->id }}')">
+                                </div>
+                            </td>
+                            @endauth
+                            <td class="align-middle">
+                                @switch(strtolower($d->state ?? ''))
+                                    @case('offline')
+                                        <img src="{{ asset('storage/state3.gif') }}" alt="Offline" title="Offline" style="width:15px;height:15px;">
+                                        @break
+                                    @case('ok')
+                                        <img src="{{ asset('storage/state1.gif') }}" alt="Online" title="Online" style="width:15px;height:15px;">
+                                        @break
+                                    @case('uploading')
+                                        <img src="{{ asset('storage/state4.gif') }}" alt="syncUp" title="syncUp" style="width:15px;height:15px;">
+                                        @break
+                                    @case('downloading')
+                                        <img src="{{ asset('storage/state2.gif') }}" alt="syncDown" title="syncDowm" style="width:15px;height:15px;">
+                                        @break
+                                    @default
+                                        {{ $d->state }}
+                                @endswitch
+                            </td>
+                            {{-- <td>{{ $d->id }}</td> --}}
+                            @auth
+                            <td class="d-none d-xl-table-cell">{{ $d->no_sn }}</td>
+                            @endauth
+                            <td>{{ $d->descripcion }}</td>
+                            @auth
+                            <td class="d-none d-xl-table-cell">{{ $d->model }}</td>
+                            <td class="d-none d-xl-table-cell">{{ $d->ip_address }}</td>
+                            @endauth
+                            <td>{{ $d->transaction_count }}</td>
+                            <td>{{ $d->photo_count }}
+                            <td>{{ $d->user_count }}</td>
+                            <td>{{ $d->fp_count }}</td>
+                            <td>{{ $d->face_count }}</td>
+                            <td>{{ $d->online }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="loader loader-double" id="loader-lu"></div>

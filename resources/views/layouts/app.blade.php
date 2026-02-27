@@ -133,6 +133,15 @@
   box-sizing: border-box;
   padding: 10px 20px;
   background: #fff; }
+  
+  .dropdown-list-permissions {
+  float: left;
+  width: 100%;
+  border-top: none;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  padding: 10px 20px;
+  background: #fff; }
   .dropdown-list input[type="search"] {
     padding: 5px 10px;
     width: 100%;
@@ -146,12 +155,23 @@
     border: none;
     border-radius: 4px;
     background: rgba(0, 0, 0, 0.05); }
+.dropdown-list-permissions input[type="search"] {
+    padding: 5px 10px;
+    width: 100%;
+    border: none;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.05); }
     .dropdown-list input[type="search"]:focus {
       -webkit-box-shadow: none;
       box-shadow: none;
       outline: none; }
 
     .dropdown-list-upload input[type="search"]:focus {
+      -webkit-box-shadow: none;
+      box-shadow: none;
+      outline: none; }
+
+    .dropdown-list-permissions input[type="search"]:focus {
       -webkit-box-shadow: none;
       box-shadow: none;
       outline: none; }
@@ -175,6 +195,17 @@
       position: relative;
       top: 2px; }
     .dropdown-list-upload ul li {
+      list-style: none; }
+
+        .dropdown-list-permissions ul {
+    margin: 20px 0 0 0;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0; }
+    .dropdown-list-permissions ul input[type="checkbox"] {
+      position: relative;
+      top: 2px; }
+    .dropdown-list-permissions ul li {
       list-style: none; }
 
 .checkbox-wrap {
@@ -275,18 +306,25 @@
                     <li class="nav-item">
                         <a class="nav-link" id="attendance" href="{{ route('devices.Attendance') }}">Asistencia</a>
                     </li>
+                    @role('admin')
                     <li class="nav-item">
                         <a class="nav-link" id="devices-log" href="{{ route('devices.DeviceLog') }}">Registro del Dispositivo</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="finger-log" href="{{ route('devices.FingerLog') }}">Registro de Huella</a>
                     </li>
+                    @endrole
                     <li class="nav-item">
                         <a class="nav-link" id="attphoto" href="{{ route('devices.AttPhoto') }}">Foto de Asistencia</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="employees" href="{{ route('employees.index') }}">Empleados</a>
                     </li>
+                    @role('admin')
+                    <li class="nav-item">
+                        <a class="nav-link" id="users" href="{{ route('users.index') }}">Usuarios</a>
+                    </li>
+                    @endrole
                 </ul>
             </div>
             <span class="navbar-text d-none d-lg-block">
@@ -688,6 +726,14 @@
             modal.hide();
         }
     </script>
+    </script>
+        <script>
+        function CloseNewUserModal() {
+            var newUserModal = document.getElementById('newUserModal');
+            var modal = bootstrap.Modal.getInstance(newUserModal);
+            modal.hide();
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js"></script>
 
     <script> 
@@ -905,6 +951,186 @@
                     
     })(jQuery);
     </script>
+
+    <script> 
+        (
+            function($) {
+                "use strict";
+                $('.dropdown-container')
+                    .on('click', '.dropdown-button', function() {
+                        $(this).siblings('.dropdown-list').toggle();
+                    })
+                    .on('input', '.dropdown-search', function() {
+                        var target = $(this);
+                        var dropdownList = target.closest('.dropdown-list');
+                        var search = target.val().toLowerCase();
+                    
+                        if (!search) {
+                            dropdownList.find('li').show();
+                            return false;
+                        }
+                    
+                        dropdownList.find('li').each(function() {
+                            var text = $(this).text().toLowerCase();
+                            var match = text.indexOf(search) > -1;
+                            $(this).toggle(match);
+                        });
+                    })
+                    .on('change', '[type="checkbox"]', function() {
+                        var container = $(this).closest('.dropdown-container');
+                        var numChecked = container. find('[type="checkbox"]:checked').length;
+                        container.find('.quantity').text(numChecked || 'Any');
+                    });
+
+
+                var permissions = [
+                    {name: 'Reiniciar', id: 'device-reboot'},
+                    {name: 'Borrar administrador', id: 'device-clear-admin'},
+                    {name: 'Borrar datos', id: 'device-clear-data'},
+                    {name: 'Borrar registro', id: 'device-clear-log'},
+                    {name: 'Periodo de captura', id: 'device-capture-setting'},
+                    {name: 'Periodo de acceso duplicado', id: 'device-punch-period'},
+                    {name: 'Enrolamiento remoto', id: 'device-remote-enroll'},
+                    {name: 'Descargar datos de usuarios', id: 'device-download-data'},
+                    {name: 'Subir datos de usuarios', id: 'device-upload-data'}
+                ];
+
+                var stateTemplate = _.template(
+                    '<li>' +
+                        '<label class="checkbox-wrap"><input name="<%= id %>" type="checkbox"> <span for="<%= id %>"><%= capName %></span> <span class="checkmark"></span></label>' +
+                        // '<label for="<%= abbreviation %>"><%= capName %></label>' +
+                    '</li>'
+                );
+
+                var i = 0;
+                for (i = 0; i < permissions.length; i++) {
+                    var emp = permissions[i];
+                    var capName = emp.name.charAt(0).toUpperCase() + emp.name.slice(1);
+                    var listItem = stateTemplate({ id: emp.id, capName: capName });
+                    $('.dropdown-list-permissions ul').append(listItem);
+                }
+                    
+    })(jQuery);
+
+        function newUserForm(){
+            document.getElementById('newUserModalTitle').textContent = 'Nuevo usuario';
+            document.getElementById('userAction').textContent = 'Crear usuario';
+            document.getElementById('userName').value = '';
+                document.getElementById('userEmail').value = '';
+            const listPermissions = document.querySelectorAll('.dropdown-list-permissions ul li');
+                listPermissions.forEach((item) => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    checkbox.checked = false;
+
+                })
+        }
+
+        function getUserData(email) {
+            $("#loader-lu").addClass("is-active");
+            fetch("{{ route('users.get-user-permissions') }}?email=" + email, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+            })
+            .then(r => r.json())
+            .then(data => {
+                var userData = data.data;
+                document.getElementById('userName').value = userData.name;
+                document.getElementById('userEmail').value = userData.email;
+                document.getElementById('newUserModalTitle').textContent = 'Editar usuario';
+                document.getElementById('userAction').textContent = 'Editar usuario';
+                //const permissions = JSON.parse(userData.permissions);
+                const listPermissions = document.querySelectorAll('.dropdown-list-permissions ul li');
+                listPermissions.forEach((item) => {
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    checkbox.checked = userData.permissions.some(p => p.name === checkbox.name);
+
+                })
+            });
+            $("#loader-lu").removeClass("is-active");
+        }
+
+        function dropUser(email){
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: '¿Eliminar usuario?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: '¡Sí, eliminarlo!',
+                cancelButtonText: 'No, cancelar'
+            }).then((result) => {
+                if(result.isConfirmed) {
+                    fetch("{{ route('users.drop-user') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({email: email})
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        Swal.fire(data.message || "Usuario eliminado", '', 'success');
+                    })
+                    .catch(err => {
+                        Swal.fire('Error al eliminar el usuario', '', 'error');
+                    })
+                }
+            });
+        }
+
+        function newUser() {
+            const listPermissions = document.querySelectorAll('.dropdown-list-permissions ul li');
+            const checkedPerIds = [];
+            listPermissions.forEach((item) => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox && checkbox.checked) {
+                    checkedPerIds.push(checkbox.name);
+                }
+            });
+
+            var nombre = document.getElementById("userName").value;
+            var email = document.getElementById("userEmail").value;
+            var pass = document.getElementById("userPasswd").value;
+
+            Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: '¿Crear nuevo usuario?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: '¡Sí, crearlo!',
+                    cancelButtonText: 'No, cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $("#loader-lu").addClass("is-active");
+                        fetch("{{ route('users.new-user') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ name: nombre, email: email, pass: pass, perm: checkedPerIds})
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            $("#loader-lu").removeClass("is-active");
+                            Swal.fire(data.message || "Usuario creado", '', 'success');
+                        })
+                        .then(() => {
+                            CloseNewUserModal();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Swal.fire('Error al crear el usuario', '', 'error');
+                            $("#loader-lu").removeClass("is-active");
+                        });
+                    }
+                });
+        }
+    </script>
+
     <script>
         function UploadData() {
             if (!currentSN) {

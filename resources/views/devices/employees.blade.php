@@ -8,7 +8,7 @@
         <div class="container mb-3">
             <div class="row">
                 <div class="col-md-8"></div>
-                    <div class="col-6 col-md-4">
+                    <div class="col-6 col-md-4 col-12">
                         <form method="get" action="">
                             <div class="input-group">
                                 <input type="text" class="form-control" name="busqueda" placeholder="Buscar" value="<?php echo htmlspecialchars($busqueda); ?>">
@@ -19,39 +19,41 @@
                 </div>
             </div>
         </div>
-        <table class="table table-bordered data-table" id="employees">
-            <thead>
-                <tr>
-                    <th>Editar</th>
-                    <th>Clave</th>
-                    <th>Nombre</th>
-                    <th>Privilegio</th>
-                    <th>Contraseña</th>
-                    <th>Tarjeta</th>
-                    <th>Tipo de verificación</th>
-                    <th>Ultima actualizacion</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($employees as $d)
+        <div class="table-responsive">
+            <table class="table table-bordered data-table" id="employees">
+                <thead>
                     <tr>
-                        <td>
-                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editEmployeeModal" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}')">Editar</button>
-                        </td>
-                        <td>{{ $d->employee_id }}</td>
-                        <td>{{ $d->name }}</td>
-                        <td>{{ $d->pri }}</td>
-                        <td>{{ $d->passwd }}</td>
-                        <td>{{ $d->card }}</td>
-                        <td>{{ $d->verify }}</td>
-                        <td>{{ $d->updated_at }}</td>
+                        <th>Editar</th>
+                        <th>Clave</th>
+                        <th>Nombre</th>
+                        <th class="d-none d-xl-table-cell">Privilegio</th>
+                        <th class="d-none d-xl-table-cell">Contraseña</th>
+                        <th class="d-none d-xl-table-cell">Tarjeta</th>
+                        <th class="d-none d-xl-table-cell">Tipo de verificación</th>
+                        <th>Ultima actualizacion</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach ($employees as $d)
+                        <tr>
+                            <td>
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editEmployeeModal" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}')">Editar</button>
+                            </td>
+                            <td>{{ $d->employee_id }}</td>
+                            <td>{{ $d->name }}</td>
+                            <td class="d-none d-xl-table-cell">{{ $d->pri }}</td>
+                            <td class="d-none d-xl-table-cell">{{ $d->passwd }}</td>
+                            <td class="d-none d-xl-table-cell">{{ $d->card }}</td>
+                            <td class="d-none d-xl-table-cell">{{ $d->verify }}</td>
+                            <td>{{ $d->updated_at }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
     <div class="d-flex justify-content-center">
-                {{ $employees->links() }}  {{-- Tampilkan pagination jika ada --}}
+                {{ $employees->onEachSide(1)->links() }}  {{-- Tampilkan pagination jika ada --}}
     </div>
     <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
