@@ -74,13 +74,19 @@ Before you begin, ensure you have the following installed on your system:
     php artisan migrate
     ```
 
-7. link storage
+7. Seed database
+
+    ```bash
+    php artisan db:seed --class=RolesAndPermissionsSeeder
+    ```
+
+8. link storage
 
     ```bash
     php artisan storage:link
     ```
 
-8. **Serve the application**
+9. **Serve the application**
     ```bash
     php artisan serve
     ```
