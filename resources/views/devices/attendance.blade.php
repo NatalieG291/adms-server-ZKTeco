@@ -37,19 +37,17 @@
         <table class="table table-bordered data-table">
             <thead class="thead-dark">
                 <tr>
-                    <th>ID</th>
-                    <th class="d-none d-xl-table-cell">SN</th>
+                    <th class="d-none d-xl-table-cell">Lector</th>
                     <th>Clave de empleado</th>
                     <th>Hora</th>
-                    <th>Status 1</th>
+                    <th>Metodo checada</th>
                     
                 </tr>
             </thead>
             <tbody>
                 @foreach($attendances as $attendance)
                     <tr>
-                        <td>{{ $attendance->id }}</td>
-                        <td class="d-none d-xl-table-cell">{{ $attendance->sn }}</td>
+                        <td class="d-none d-xl-table-cell">{{ $attendance->descripcion }}</td>
                         <td>{{ $attendance->employee_id }}</td>
                         <td>{{ $attendance->timestamp }}</td>
                         <td>{{ $attendance->status1 }}</td>

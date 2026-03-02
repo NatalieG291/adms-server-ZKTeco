@@ -304,7 +304,28 @@ class DeviceController extends Controller
         $startTime = $request->get('start_time');
         $endTime = $request->get('end_time');
 
-        $selectCols = 'id, sn, employee_id, timestamp, status1';
+        $selectCols = "id, descripcion, employee_id, timestamp, 
+            CASE 
+                WHEN status1 = 1 THEN 'Huella' 
+                WHEN status1 = 3 THEN 'Contraseña'
+                WHEN status1 = 4 THEN 'Tarjeta'
+                WHEN status1 = 5 THEN 'Huella/Contraseña'
+                WHEN status1 = 6 THEN 'Huella/Tarjeta'
+                WHEN status1 = 7 THEN 'Tarjeta/Contraseña'
+                WHEN status1 = 8 THEN 'ID de usuario y huella'
+                WHEN status1 = 9 THEN 'Huella y Contraseña'
+                WHEN status1 = 10 THEN 'Huella y tarjeta'
+                WHEN status1 = 11 THEN 'Contraseña y tarjeta'
+                WHEN status1 = 12 THEN 'Huella, contraseña y tarjeta'
+                WHEN status1 = 13 THEN 'ID de usuario, huella y contraseña'
+                WHEN status1 = 14 THEN 'Huella y tarjeta / ID de usuario'
+                WHEN status1 = 15 THEN 'Rostro' 
+                WHEN status1 = 16 THEN 'Rostro y huella'
+                WHEN status1 = 17 THEN 'Rostro y contraseña'
+                WHEN status1 = 18 THEN 'Rostro y tarjeta'
+                WHEN status1 = 19 THEN 'Rostro, huella y tarjeta'
+                WHEN status1 = 20 THEN 'Rostro, huella y contraseña'
+                ELSE CAST(STATUS1 AS VARCHAR) END AS status1";
         $whereSql = '';
         $bindings = [];
 
@@ -329,7 +350,29 @@ class DeviceController extends Controller
         }
 
         if ($request->get('export')) {
-            $sqlExport = "SELECT l.descripcion, employee_id, timestamp, status1 FROM attendances a LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . " ORDER BY id DESC";
+            $sqlExport = "SELECT l.descripcion, employee_id, timestamp,
+            CASE 
+                WHEN status1 = 1 THEN 'Huella' 
+                WHEN status1 = 3 THEN 'Contraseña'
+                WHEN status1 = 4 THEN 'Tarjeta'
+                WHEN status1 = 5 THEN 'Huella/Contraseña'
+                WHEN status1 = 6 THEN 'Huella/Tarjeta'
+                WHEN status1 = 7 THEN 'Tarjeta/Contraseña'
+                WHEN status1 = 8 THEN 'ID de usuario y huella'
+                WHEN status1 = 9 THEN 'Huella y Contraseña'
+                WHEN status1 = 10 THEN 'Huella y tarjeta'
+                WHEN status1 = 11 THEN 'Contraseña y tarjeta'
+                WHEN status1 = 12 THEN 'Huella, contraseña y tarjeta'
+                WHEN status1 = 13 THEN 'ID de usuario, huella y contraseña'
+                WHEN status1 = 14 THEN 'Huella y tarjeta / ID de usuario'
+                WHEN status1 = 15 THEN 'Rostro' 
+                WHEN status1 = 16 THEN 'Rostro y huella'
+                WHEN status1 = 17 THEN 'Rostro y contraseña'
+                WHEN status1 = 18 THEN 'Rostro y tarjeta'
+                WHEN status1 = 19 THEN 'Rostro, huella y tarjeta'
+                WHEN status1 = 20 THEN 'Rostro, huella y contraseña'
+                ELSE CAST(STATUS1 AS VARCHAR) END AS status1 
+            FROM attendances a LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . " ORDER BY id DESC";
             $rows = DB::select($sqlExport, $bindings);
             $filename = 'attendances_' . now()->format('Ymd_His') . '.csv';
             $headers = [
@@ -359,7 +402,8 @@ class DeviceController extends Controller
         $start = ($page - 1) * $perPage;
         $end = $start + $perPage;
 
-        $sql = "SELECT $selectCols FROM (SELECT $selectCols, ROW_NUMBER() OVER (ORDER BY id DESC) AS rn FROM attendances " . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+        $sql = "SELECT id, descripcion, employee_id, timestamp, status1 FROM (SELECT $selectCols, ROW_NUMBER() OVER (ORDER BY id DESC) AS rn 
+        FROM attendances a LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
 
         $rows = DB::select($sql, array_merge($bindings, [$start + 1, $end]));
 
