@@ -45,10 +45,36 @@ class iclockController extends Controller
         // ============================
         // 2. Actualizar estado online
         // ============================
-        DB::table('devices')->updateOrInsert(
-            ['no_sn' => $sn],
-            ['online' => now()]
-        );
+
+        $id = DB::table('devices')->select('id')->where('no_sn', '=', $sn)->get();
+        if($id->isNotEmpty()){
+            DB::table('devices')->updateOrInsert(
+                ['no_sn' => $sn],
+                ['online' => now()]
+            );
+        }
+        else {
+            DB::table('devices')->Insert(
+                ['no_sn' => $sn],
+                ['online' => now()]
+            );
+            $id = DB::table('devices')->select('id')->where('no_sn', '=', $sn)->get();
+            DB::table('device_commands')
+                ->insert([
+                    'device_id' => $id[0]->id,
+                    'command' => 'CHECK',
+                    'data' => '{}',
+                    'created_at' => now(),
+                ]);
+            DB::table('device_commands')
+                ->insert([
+                    'device_id' => $id[0]->id,
+                    'command' => 'INFO',
+                    'data' => '{}',
+                    'created_at' => now(),
+                ]);
+
+        }
 
         // ============================
         // 3. Obtener zona horaria para enviar al lector
@@ -484,6 +510,11 @@ public function fdata(Request $request)
         if (!$device) {
             return "OK";
         }
+
+        DB::table('devices')->updateOrInsert(
+                ['no_sn' => $sn],
+                ['online' => now()]
+            );
 
         if($info !== null) {
             DB::table('devices')
