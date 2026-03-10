@@ -77,30 +77,78 @@ class iclockController extends Controller
         }
 
         // ============================
-        // 3. Obtener zona horaria para enviar al lector
+        // 3. Obtener configuraciones
         // ============================
         $device = DB::table('devices')->where('no_sn', $sn)->first();
         $timezone = $device && $device->timezone !== null ? $device->timezone : -6;
+        $Delay = $device && $device->Delay !== null ? $device->Delay : 10;
+        $RealTime = $device && $device->RealTime !== null ? $device->RealTime : 1;
+        $TransInterval = $device && $device->TransInterval !== null ? $device->TransInterval : 5;
+        $TransTimes = $device && $device->TransTimes !== null ? $device->TransTimes : "00:00;14:05";
+        $flags = [
+            "TransData",
+            "AttLog",
+            "OpLog",
+            "AttPhoto",
+            "EnrollFP",
+            "EnrollUser",
+            "FPImag",
+            "ChgUser",
+            "ChgFP",
+            "FACE",
+            "UserPic",
+            "FVEIN",
+            "BioPhoto"
+        ];
+        $PushOptions = [
+            "UserCount",
+            "TransactionCount",
+            "FingerFunOn",
+            "FPVersion",
+            "FPCount",
+            "FaceFunOn",
+            "FaceVersion",
+            "FaceCount",
+            "FvFunOn",
+            "FvVersion",
+            "FvCount",
+            "PvFunOn",
+            "PvVersion",
+            "PvCount",
+            "BioPhotoFun",
+            "BioDataFun",
+            "PhotoFunOn",
+            "~LockFunOn",
+            "CardProtFormat",
+            "~Platform",
+            "MultiBioPhotoSupport",
+            "MultiBioDataSupport",
+            "MultiBioVersion"
+        ];
 
         // ============================
         // 4. Respuesta ADMS
         // ============================
         $r =
             "GET OPTION FROM: {$sn}\r\n" .
-            "Stamp=9999\r\n" .
-            "OpStamp=" . time() . "\r\n" .
-            "ErrorDelay=60\r\n" .
-            "Delay=30\r\n" .
-            "ResLogDay=18250\r\n" .
-            "ResLogDelCount=10000\r\n" .
-            "ResLogCount=50000\r\n" .
-            "TransTimes=00:00;14:05\r\n" .
-            "TransInterval=5\r\n" .
-            "TransFlag=1111000000\r\n" .
-            "TimeZone={$timezone}\r\n" .   // ? ENVÍO DE ZONA HORARIA
-            "Realtime=1\r\n" .
+            "TransFlag=" . implode("\t", $flags) . "\r\n" .
+            "ServerVer=2.4.1\r\n" .
+            "PushProtVer=2.4.1\r\n" .
             "Encrypt=0\r\n" .
-            "SupportPing=1";
+            "EncryptFlag=1000000000\r\n" .
+            "SupportPing=1\r\n" .
+            "PushOptionsFlag=1\r\n" .
+            "MaxPostSize=1048576\r\n" .
+            "PushOptions=" . implode(",", $PushOptions) . "\r\n".
+            "TimeZone={$timezone}\r\n" .
+            "TransTimes={$TransTimes}\r\n" .
+            "TransInterval={$TransInterval}\r\n" .
+            "ErrorDelay=60\r\n" .
+            "Delay={$Delay}\r\n" .
+            "Realtime={$RealTime}\r\n" .
+            "Stamp=0\r\n" .
+            "OpStamp=9999\r\n" .
+            "PhotoStamp=9999";
 
         return $r;
     }
@@ -242,7 +290,7 @@ public function receiveRecords(Request $request)
                     if(DB::connection('giro')
                         ->table('Supervisor_giro.BitacoraRegistros')
                         ->where('CLAVE', $data[0])
-                        ->where('FECHA', $data[1])
+                        ->where('FECHA', $data[1] . ' ' . $data[2])
                         ->exists()) {
                             continue;
                     }
@@ -346,7 +394,7 @@ public function receiveRecords(Request $request)
             $tot++;
         }
 
-        return "OK: " . $tot;
+        return "OK:" . $tot;
 
     } catch (\Throwable $e) {
         DB::table('error_log')->insert(['data' => $e->getMessage(), 'created_at' => now(), 'updated_at' => now()]);

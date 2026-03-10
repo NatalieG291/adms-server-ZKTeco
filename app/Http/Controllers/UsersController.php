@@ -18,6 +18,14 @@ class UsersController extends Controller
         return view('users.index', compact('users'));
     }
 
+    public function getPermissions(Request $request){
+        $permissions = DB::table('permissions')
+            ->select('name', 'description')
+            ->get();
+
+        return response()->json(['permissions' => $permissions]);
+    }
+
     public function getUserPermissions(Request $request){
         $id = DB::table('users')->select('id')->where('email', '=', $request->email)->get();
         $user = User::find($id[0]->id);

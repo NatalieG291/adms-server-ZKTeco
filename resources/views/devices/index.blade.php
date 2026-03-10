@@ -28,47 +28,48 @@
                 </ul>
             </div>
             @endcanany
-            @canany(['device-capture-setting', 'device-punch-period'])
+            @canany(['device-capture-setting', 'device-punch-period', 'device-change-config'])
             <div class="btn-group me-2" role="group" aria-label="Basic outlined example">
                 <button id=btnGroupDrop1 type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     Configuración del Dispositivo
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
                     @can('device-capture-setting')
-                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#pictureModal">Configuración de captura</a></li>
+                    <li><a class="dropdown-item" onclick="OpenPictureModal()">Configuración de captura</a></li>
                     @endcan
                     @can('device-punch-period')
-                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#duplicateTimeModal">Período de acceso duplicado</a></li>
+                    <li><a class="dropdown-item" onclick="OpenDuplicateTimeModal()">Período de acceso duplicado</a></li>
+                    @endcan
+                    @can('device-change-config')
+                    <li><a class="dropdown-item" onclick="OpenDeviceConfigModal()">Configuracion del equipo</a></li>
                     @endcan
                 </ul>
             </div>
             @endcanany
             @can('device-remote-enroll')
-            <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#enrollModal">Enrolamiento remoto</button>
+            <button type="button" class="btn btn-primary me-2" onclick="OpenEnrollModal()">Enrolamiento remoto</button>
             @endcan
-            @can('device-download-data')
-            <button type="button" class="btn btn-primary me-2 d-none d-xl-block d-xxl-none" data-bs-toggle="modal" data-bs-target="#downloadData">Descargar datos de usuario</button>
-            @endcan
-            @can('device-upload-data')
-            <button type="button" class="btn btn-primary me-2 d-none d-xl-block d-xxl-none" data-bs-toggle="modal" data-bs-target="#uploadData">Subir datos de usuario</button>
-            @endcan
-            @canany(['device-download-data', 'device-upload-data'])
+            @canany(['device-download-data', 'device-upload-data', 'device-delete-employee'])
             <div class="btn-group me-2 d-lg-none d-xxl-block" role="group" >
                 <button id="userdata" type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     Datos de usuarios
                 </button>
                 <ul class="dropdown-menu">
                     @can('device-download-data')
-                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#downloadData">Descargar datos de usuario</a></li>
+                    <li><a class="dropdown-item" onclick="OpenDownloadModal()">Descargar datos de usuario</a></li>
                     @endcan
                     @can('device-upload-data')
-                    <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadData">Subir datos de usuario</a></li>
+                    <li><a class="dropdown-item" onclick="OpenUploadModal()">Subir datos de usuario</a></li>
+                    @endcan
+                    @can('device-delete-employee')
+                    <li><a class="dropdown-item text-danger" type="button" onclick="OpenDeleteEmployeeModal()">Eliminar empleado del lector</a></li>
                     @endcan
                 </ul>
             </div>
             @endcanany
         </div>
         <!--  -->
+        @auth
         <div class="btn-toolbar d-xs-block d-md-block d-lg-none" role="toolbar">
             <div class="dropdown">
                 <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false">
@@ -90,57 +91,64 @@
                     <li><button class="dropdown-item" type="button" onclick="ClearLog()">Borrar registro</button></li>
                     @endcan
                     @endcanany
-                    @canany(['device-capture-setting', 'device-punch-period'])
+                    @canany(['device-capture-setting', 'device-punch-period', 'device-change-config'])
                     <li><hr class="dropdown-divider"></li>
                     @can('device-capture-setting')
-                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#pictureModal">Configuracion de captura</button></li>
+                    <li><button class="dropdown-item" type="button" onclick="OpenPictureModal()">Configuracion de captura</button></li>
                     @endcan
                     @can('device-punch-period')
-                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#duplicateTimeModal">Periodo de acceso duplicado</button></li>
+                    <li><button class="dropdown-item" type="button" onclick="OpenDuplicateTimeModal()">Periodo de acceso duplicado</button></li>
+                    @endcan
+                    @can('device-change-config')
+                    <li><button class="dropdown-item" type="button" onclick="OpenDeviceConfigModal()">Configuracion del equipo</button></li>
                     @endcan
                     @endcanany
                     @can('device-remote-enroll')
                     <li><hr class="dropdown-divider"></li>
-                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#enrollModal">Enrolamiento remoto</button></li>
+                    <li><button class="dropdown-item" type="button" onclick="OpenEnrollModal()">Enrolamiento remoto</button></li>
                     @endcan
-                    @canany(['device-download-data', 'device-upload-data'])
+                    @canany(['device-download-data', 'device-upload-data', 'device-delete-employee'])
                     <li><hr class="dropdown-divider"></li>
                     @can('device-download-data')
-                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#downloadData">Descargar datos de usuario</button></li>
+                    <li><button class="dropdown-item" type="button" onclick="OpenDownloadModal()">Descargar datos de usuario</button></li>
                     @endcan
                     @can('device-upload-data')
-                    <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#uploadData">Subir datos de usuario</button></li>
+                    <li><button class="dropdown-item" type="button" onclick="OpenUploadModal()">Subir datos de usuario</button></li>
+                    @endcan
+                    @can('device-delete-employee')
+                    <li><button class="dropdown-item text-danger" type="button" onclick="OpenDeleteEmployeeModal()">Eliminar empleado del lector</button></li>
                     @endcan
                     @endcanany
                 </ul>
             </div>
         </div>
-        
-        <br><br>
+        @endauth
+    </div>
+    <div class="table-container mt-4">
         {{-- <a href="{{ route('devices.create') }}" class="btn btn-primary mb-3">Tambah Device</a> --}}
-        <div class="table-responsive">
+        <div>
             <table class="table table-bordered data-table table-hover align-middle" id="devices">
                 <thead>
                     <tr>
                         @auth
-                        <th></th>
+                        <th scope="col"></th>
                         @endauth
-                        <th>Estado</th>
-                        {{-- <th>No</th> --}}
+                        <th scope="col">Estado</th>
+                        {{-- <th scope="col">No</th> --}}
                         @auth
-                        <th class="d-none d-xl-table-cell">Número de Serie</th>
+                        <th scope="col" class="d-none d-xl-table-cell">Número de Serie</th>
                         @endauth
-                        <th>Descripción</th>
+                        <th scope="col">Descripción</th>
                         @auth
-                        <th class="d-none d-xl-table-cell">Modelo</th>
-                        <th class="d-none d-xl-table-cell">Dirección IP</th>
-                        <th>Número de transacciones</th>
-                        <th>Fotos de asistencia</th>
-                        <th>Número de usuarios</th>
-                        <th>Conteo de huellas</th>
-                        <th>Conteo de rostros</th>
+                        <th scope="col" class="d-none d-xl-table-cell">Modelo</th>
+                        <th scope="col" class="d-none d-xl-table-cell">Dirección IP</th>
+                        <th scope="col">Número de transacciones</th>
+                        <th scope="col">Fotos de asistencia</th>
+                        <th scope="col">Número de usuarios</th>
+                        <th scope="col">Conteo de huellas</th>
+                        <th scope="col">Conteo de rostros</th>
                         @endauth
-                        <th>En línea</th>
+                        <th scope="col">En línea</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -195,6 +203,143 @@
 
     <div class="loader loader-double" id="loader-lu"></div>
 
+    <div class="modal fade" id="DeviceConfig" tabindex="-1" aria-labelledby="DeviceConfigLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="DeviceConfigLabel">Configuracion del lector</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="deviceName" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="deviceName">
+                        </div>
+                        <div class="col-12">
+                            <label for="timeZone" class="form-label">Zona horaria</label>
+                            <select class="form-select" id="timeZone">
+                                <option value="-750">Etc/GMT-12:30</option>
+                                <option value="-12">Etc/GMT-12</option>
+                                <option value="-690">Etc/GMT-11:30</option>
+                                <option value="-11">Etc/GMT-11</option>
+                                <option value="-630">Etc/GMT-10:30</option>
+                                <option value="-10">Etc/GMT-10</option>
+                                <option value="-570">Etc/GMT-9:30</option>
+                                <option value="-9">Etc/GMT-9</option>
+                                <option value="-510">Etc/GMT-8:30</option>
+                                <option value="-8">Etc/GMT-8</option>
+                                <option value="-450">Etc/GMT-7:30</option>
+                                <option value="-7">Etc/GMT-7</option>
+                                <option value="-390">Etc/GMT-6:30</option>
+                                <option value="-6">Etc/GMT-6</option>
+                                <option value="-330">Etc/GMT-5:30</option>
+                                <option value="-5">Etc/GMT-5</option>
+                                <option value="-270">Etc/GMT-4:30</option>
+                                <option value="-4">Etc/GMT-4</option>
+                                <option value="-210">Etc/GMT-3:30</option>
+                                <option value="-3">Etc/GMT-3</option>
+                                <option value="-150">Etc/GMT-2:30</option>
+                                <option value="-2">Etc/GMT-2</option>
+                                <option value="-90">Etc/GMT-1:30</option>
+                                <option value="-1">Etc/GMT-1</option>
+                                <option value="-30">Etc/GMT-0:30</option>
+                                <option value="0">Etc/GMT</option>
+                                <option value="30">Etc/GMT+0:30</option>
+                                <option value="1">Etc/GMT+1</option>
+                                <option value="90">Etc/GMT+1:30</option>
+                                <option value="2">Etc/GMT+2</option>
+                                <option value="150">Etc/GMT+2:30</option>
+                                <option value="3">Etc/GMT+3</option>
+                                <option value="210">Etc/GMT+3:30</option>
+                                <option value="4">Etc/GMT+4</option>
+                                <option value="270">Etc/GMT+4:30</option>
+                                <option value="5">Etc/GMT+5</option>
+                                <option value="330">Etc/GMT+5:30</option>
+                                <option value="6">Etc/GMT+6</option>
+                                <option value="390">Etc/GMT+6:30</option>
+                                <option value="7">Etc/GMT+7</option>
+                                <option value="450">Etc/GMT+7:30</option>
+                                <option value="8">Etc/GMT+8</option>
+                                <option value="510">Etc/GMT+8:30</option>
+                                <option value="9">Etc/GMT+9</option>
+                                <option value="570">Etc/GMT+9:30</option>
+                                <option value="10">Etc/GMT+10</option>
+                                <option value="630">Etc/GMT+10:30</option>
+                                <option value="11">Etc/GMT+11</option>
+                                <option value="690">Etc/GMT+11:30</option>
+                                <option value="12">Etc/GMT+12</option>
+                                <option value="750">Etc/GMT+12:30</option>
+                                <option value="13">Etc/GMT+13</option>
+                                <option value="810">Etc/GMT+13:30</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="delay" class="form-label">Intervalo de solicitud</label>
+                            <div class="input-group">
+                                <input type="number" min="1" class="form-control" id="delay">
+                                <div class="input-group-text">Segundos</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="transfer" class="form-label">Tipo de transferencia</label>
+                            <select class="form-select" id="transfer" onchange="if(document.getElementById('transfer').value == 1){document.getElementById('transferTime').disabled=true;document.getElementById('transtimes').disabled=true;}else{document.getElementById('transferTime').disabled=false;document.getElementById('transtimes').disabled=false;}">
+                                <option value="1">En tiempo real</option>
+                                <option valie="0">Sincronizar</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="transferTime" class="form-label">Intervalo de transferencia</label>
+                            <div class="input-group">
+                                <input type="number" min="1" class="form-control" id="transferTime">
+                                <div class="input-group-text">minutos</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label for="transtimes" class="form-label">Hora de transferencia</label>
+                            <div class="input-group">
+                                <input type="text" min="1" class="form-control" id="transtimes">
+                                <div class="input-group-text">HH:MM</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="SaveDeviceConfig()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="DeleteEmployee" tabindex="-1" aria-labelledby="deleteDataLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteDataLabel">Eliminar empleados del lector</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="dropdown-container" id="employeeSelectDelete">
+                        <div class="dropdown-button noselect w-100">
+                            <div class="dropdown-label">Empleados</div>
+                            <div class="dropdown-quantity">(<span class="quantity"></span>)</div>
+                        <i class="fa fa-chevron-down"></i>
+				    </div>
+                        <div class="dropdown-list" style="">
+                            <input type="search" placeholder="Buscar empleados" class="dropdown-search">
+                            <ul class="dropdown-list">
+                            </ul>
+                        </div>
+					</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="EmployeeDeleteData()">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="downloadData" tabindex="-1" aria-labelledby="downloadDataLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -271,9 +416,9 @@
                             <div class="dropdown-quantity">(<span class="quantity"></span>)</div>
                         <i class="fa fa-chevron-down"></i>
 				    </div>
-                        <div class="dropdown-list-upload" style="">
+                        <div class="dropdown-list" style="">
                             <input type="search" placeholder="Buscar empleados" class="dropdown-search">
-                            <ul class="dropdown-list-upload">
+                            <ul class="dropdown-list">
                             </ul>
                         </div>
 					</div>

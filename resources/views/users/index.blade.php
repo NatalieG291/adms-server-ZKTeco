@@ -39,6 +39,8 @@
         </table>
     </div>  
 
+    <div class="loader loader-double" id="loader-lu"></div>
+
     <div class="modal fade" id="newUserModal" tabindex="-1" aria-labelledby="newUserModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
