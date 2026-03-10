@@ -117,6 +117,72 @@ class DeviceController extends Controller
         return response()->json(['message' => "Configuracion de tiempo de duplicados enviada al lector"]);
     }
 
+    public function SaveDeviceConfig(Request $request){
+        $id = $request->input('sn');
+        $name = $request->input('name');
+        $timezone = $request->input('timezone');
+        $delay = $request->input('delay');
+        $realtime = $request->input('realtime');
+        $transfertime = $request->input('transfertime');
+        $transtimes = $request->input('transtimes');
+
+        DB::table('devices')
+                ->where('id', $id)
+                ->update([
+                    'timezone' => $timezone,
+                    'Delay' => $delay,
+                    'RealTime' => $realtime,
+                    'TransInterval' => $transfertime,
+                    'TransTimes' => $transtimes,
+                    'nama' => $name,
+                ]);
+
+        $sn = DB::table('devices')->where('id', $id)->first();
+        DB::connection('giro')
+            ->table('Supervisor_Giro.lectores_adms')
+            ->where('NUMERO_SERIE', $sn->no_sn)
+            ->update([
+                'descripcion' => $name,
+            ]);
+
+        $q['device_id'] = $id;
+        $q['command'] = 'CHECK';
+        $q['data'] = '{}';
+        $q['created_at'] = now();
+        DB::table('device_commands')->insert($q);
+
+        return response()->json(['message' => "Configuracion guardada"]);
+    }
+    
+    public function GetDeviceConfig(Request $request){
+        $sn = $request->input('sn');
+        $device = DB::table('devices')
+            ->select('descripcion', 'timezone', 'Delay', 'RealTime', 'TransInterval', 'TransTimes')
+            ->leftjoin('giro.supervisor_giro.lectores_adms',
+                DB::raw("devices.no_sn COLLATE SQL_Latin1_General_CP1_CI_AS"),
+                '=',
+                DB::raw("lectores_adms.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS")
+            )
+            ->where('devices.id', $sn)->first();
+        $name = $device && $device->descripcion !== null ? $device->descripcion : '';
+        $timezone = $device && $device->timezone !== null ? $device->timezone : -6;
+        $Delay = $device && $device->Delay !== null ? $device->Delay : 10;
+        $RealTime = $device && $device->RealTime !== null ? $device->RealTime : 1;
+        $TransInterval = $device && $device->TransInterval !== null ? $device->TransInterval : 5;
+        $TransTimes = $device && $device->TransTimes !== null ? $device->TransTimes : "00:00;14:05";
+
+        $configs = [
+            "name" => $name,
+            "timezone" => $timezone,
+            "delay" => $Delay,
+            "realtime" => $RealTime,
+            "transinterval" => $TransInterval,
+            "transtimes" => $TransTimes
+        ];
+
+        return response()->json(['configs' => $configs]);
+    }
+
     public function Download(Request $request)
     {
         $sn = $request->input('sn');
@@ -139,6 +205,19 @@ class DeviceController extends Controller
             }
         }
         return response()->json(['message' => "Datos de empleados solicitados al lector"]);
+    }
+
+    public function DeleteEmployee(Request $request){
+        $sn = $request->input('sn');
+        $employees = $request->input('empids');
+        foreach($employees as $pin){
+            $q['device_id'] = $sn;
+            $q['command'] = 'DATA DELETE USERINFO PIN='.$pin;
+            $q['data'] = '{}';
+            $q['created_at'] = now();
+            DB::table('device_commands')->insert($q);
+        }
+        return response()->json(['message' => "Empleados enviados para eliminar"]);
     }
 
     public function Upload(Request $request)

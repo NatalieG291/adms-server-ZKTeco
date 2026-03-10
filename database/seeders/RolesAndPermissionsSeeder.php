@@ -18,15 +18,17 @@ class RolesAndPermissionsSeeder extends Seeder
     {
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        Permission::create(['name' => 'device-reboot']);
-        Permission::create(['name' => 'device-clear-admin']);
-        Permission::create(['name' => 'device-clear-data']);
-        Permission::create(['name' => 'device-clear-log']);
-        Permission::create(['name' => 'device-capture-setting']);
-        Permission::create(['name' => 'device-punch-period']);
-        Permission::create(['name' => 'device-remote-enroll']);
-        Permission::create(['name' => 'device-download-data']);
-        Permission::create(['name' => 'device-upload-data']);
+        Permission::create(['name' => 'device-reboot', 'description' => 'Reiniciar']);
+        Permission::create(['name' => 'device-clear-admin', 'description' => 'Borrar administrador']);
+        Permission::create(['name' => 'device-clear-data', 'description' => 'Borrar datos']);
+        Permission::create(['name' => 'device-clear-log', 'description' => 'Borrar registro']);
+        Permission::create(['name' => 'device-capture-setting', 'description' => 'Configuracion de fotos']);
+        Permission::create(['name' => 'device-punch-period', 'description' => 'Periodo de acceso duplicado']);
+        Permission::create(['name' => 'device-remote-enroll', 'description' => 'Enrolamiento remoto']);
+        Permission::create(['name' => 'device-download-data', 'description' => 'Descargar datos de usuarios']);
+        Permission::create(['name' => 'device-upload-data', 'description' => 'Subir datos de usuarios']);
+        Permission::create(['name' => 'device-delete-employee', 'description' => 'Eliminar empleados del lector']);
+        Permission::create(['name' => 'device-change-config', 'description' => 'Cambiar configuracion del lector']);
 
         $admin = Role::create(['name' => 'admin']);
         $admin->givePermissionTo(Permission::all());

@@ -24,6 +24,7 @@ Route::get('devices', [DeviceController::class, 'Index'])->name('devices.index')
 
 Route::get('/users', [UsersController::class, 'Index'])->name('users.index')->middleware('auth');
 Route::get('get-user-permissions', [UsersController::class, 'getUserPermissions'])->name('users.get-user-permissions')->middleware('auth');
+Route::get('get-permissions', [UsersController::class, 'getPermissions'])->name('users.get-permissions')->middleware('auth');
 Route::post('new-user', [UsersController::class, 'store'])->name('users.new-user')->middleware('auth');
 Route::post('drop-user', [UsersController::class, 'destroy'])->name('users.drop-user');
 
@@ -37,6 +38,9 @@ Route::post('employees/upload-photo', [EmployeeController::class, 'UploadPhoto']
 Route::post('employees/EditEmployeeData', [EmployeeController::class, 'EditEmployeeData'])->name('employee.EditEmployeeData')->middleware('auth');
 Route::post('devices/download', [DeviceController::class, 'Download'])->name('devices.download')->middleware('auth');
 Route::post('devices/delete-data', [DeviceController::class, 'DeleteData'])->name('devices.delete-data')->middleware('auth');
+Route::post('devices/delete-employee', [DeviceController::class, 'DeleteEmployee'])->name('devices.delete-employee')->middleware('auth');
+Route::post('devices/get-device-config', [DeviceController::class, 'GetDeviceConfig'])->name('devices.get-device-config')->middleware('auth');
+Route::post('devices/save-device-config', [DeviceController::class, 'SaveDeviceConfig'])->name('devices.save-device-config')->middleware('auth');
 Route::post('devices/upload', [DeviceController::class, 'Upload'])->name('devices.upload')->middleware('auth');
 Route::post('devices/restart', [DeviceController::class, 'RestartDevice'])->name('devices.restart')->middleware('auth');
 Route::post('devices/clear-admin', [DeviceController::class, 'ClearAdmin'])->name('devices.clear-admin')->middleware('auth');

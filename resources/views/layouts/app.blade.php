@@ -22,7 +22,16 @@
             }
         }
     </script>
-    <style>s
+    <style>
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #fff !important;
+        }
+        .table-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
         a{
             cursor: pointer !important;
         }
@@ -290,7 +299,7 @@
     </style>
 </head>
 <body onload="navActive()">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
         <div class="container">
             <a class="navbar-brand" href="#">
                 <img src="storage/logo_ossc.png" height="25vw" width="auto" class="d-inline-block align-text-top">
@@ -690,44 +699,270 @@
                 }
             });
         }
-    </script>
-    <script>
+
+        function SaveDeviceConfig(){
+            if (!currentSN) {
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
+                return;
+            }
+
+            name = document.getElementById('deviceName').value
+            timezone = document.getElementById('timeZone').value
+            delay = document.getElementById('delay').value
+            realtime = document.getElementById('transfer').value
+            transfertime = document.getElementById('transferTime').value
+            transtimes = document.getElementById('transtimes').value
+
+            Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: '¿Guardar la configuracion del dispositivo ' + currentSN + '?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: '¡Sí, guardar!',
+                    cancelButtonText: 'No, cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $("#loader-lu").addClass("is-active");
+                        fetch("{{ route('devices.save-device-config') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ sn: currentSN, name: name, timezone: timezone, delay: delay, realtime: realtime, transfertime: transfertime, transtimes: transtimes })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            $("#loader-lu").removeClass("is-active");
+                            Swal.fire(data.message || "Configuraciones guardadas", '', 'success');
+                        })
+                        .then(() => {
+                            CloseDeviceConfigModal();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Swal.fire('Error al guardar las configuraciones', '', 'error');
+                            $("#loader-lu").removeClass("is-active");
+                        });
+                    }
+                });
+        }
+
+        function EmployeeDeleteData(){
+            const listEmployees = document.querySelectorAll('.dropdown-list ul li');
+            const checkedEmpIds = [];
+            listEmployees.forEach((item) => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox && checkbox.checked) {
+                    checkedEmpIds.push(checkbox.name);
+                }
+            });
+            if(checkedEmpIds.length === 0) {
+                Swal.fire('Ningún empleado seleccionado', '', 'error');
+                return;
+            }
+            Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: '¿Eliminar empleados seleccionados del dispositivo ' + currentSN + '?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: '¡Sí, eliminarlos!',
+                    cancelButtonText: 'No, cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $("#loader-lu").addClass("is-active");
+                        fetch("{{ route('devices.delete-employee') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ sn: currentSN, empids: checkedEmpIds })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            $("#loader-lu").removeClass("is-active");
+                            Swal.fire(data.message || "Empleados enviados para eliminar", '', 'success');
+                        })
+                        .then(() => {
+                            CloseDeleteEmployeeModal();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Swal.fire('Error al enviar la solicitud de eliminacion', '', 'error');
+                            $("#loader-lu").removeClass("is-active");
+                        });
+                    }
+                });
+        }
+
         function CloseEnrollModal() {
             var enrollModal = document.getElementById('enrollModal');
             var modal = bootstrap.Modal.getInstance(enrollModal);
             modal.hide();
         }
-    </script>
-    <script>
+
+        function OpenEnrollModal() {
+            if (!currentSN) {
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
+                return;
+            }
+            var modal = new bootstrap.Modal(document.getElementById('enrollModal'), {});
+            modal.show();
+        }
+
         function ClosePictureModal() {
             var PictureModal = document.getElementById('pictureModal');
             var modal = bootstrap.Modal.getInstance(PictureModal);
             modal.hide();
         }
-    </script>
-    <script>
+
+        function OpenPictureModal() {
+            if (!currentSN) {
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
+                return;
+            }
+            var modal = new bootstrap.Modal(document.getElementById('pictureModal'), {});
+            modal.show();
+        }
+
         function CloseDuplicateTimeModal() {
             var duplicateTimeModal = document.getElementById('duplicateTimeModal');
             var modal = bootstrap.Modal.getInstance(duplicateTimeModal);
             modal.hide();
         }
-    </script>
-    <script>
+
+        function OpenDuplicateTimeModal() {
+            if (!currentSN) {
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
+                return;
+            }
+            var modal = new bootstrap.Modal(document.getElementById('duplicateTimeModal'), {});
+            modal.show();
+        }
+
         function CloseDownloadModal() {
             var downloadModal = document.getElementById('downloadData');
             var modal = bootstrap.Modal.getInstance(downloadModal);
             modal.hide();
         }
-    </script>
-        <script>
+
+        function OpenDownloadModal() {
+            if (!currentSN) {
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
+                return;
+            }
+            document.getElementById('inlineRadio1').checked = true;
+            document.getElementById('inlineRadio2').checked = false;
+            document.getElementById('employeeSelect').classList.add('visually-hidden');
+            const listEmployees = document.querySelectorAll('.dropdown-list ul li');
+            listEmployees.forEach((item) => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox && checkbox.checked) {
+                    checkbox.checked = false;
+                }
+            });
+            var modal = new bootstrap.Modal(document.getElementById('downloadData'), {});
+            modal.show();
+        }
+
         function CloseUploadModal() {
             var uploadModal = document.getElementById('uploadData');
             var modal = bootstrap.Modal.getInstance(uploadModal);
             modal.hide();
         }
-    </script>
-    </script>
-        <script>
+
+        function OpenUploadModal() {
+            if (!currentSN) {
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
+                return;
+            }
+            document.getElementById('allEmployeesUpload').checked = true;
+            document.getElementById('specificEmployeeUpload').checked = false;
+            document.getElementById('employeeSelectUpload').classList.add('visually-hidden');
+            const listEmployees = document.querySelectorAll('.dropdown-list ul li');
+            listEmployees.forEach((item) => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox && checkbox.checked) {
+                    checkbox.checked = false;
+                }
+            });
+            var modal = new bootstrap.Modal(document.getElementById('uploadData'), {});
+            modal.show();
+        }
+
+        function CloseDeleteEmployeeModal() {
+            var DeleteEmployeeModal = document.getElementById('DeleteEmployee');
+            var modal = bootstrap.Modal.getInstance(DeleteEmployeeModal);
+            modal.hide();
+        }
+
+        function OpenDeleteEmployeeModal() {
+            if (!currentSN) {
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
+                return;
+            }
+            const listEmployees = document.querySelectorAll('.dropdown-list ul li');
+            listEmployees.forEach((item) => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox && checkbox.checked) {
+                    checkbox.checked = false;
+                }
+            });
+            var modal = new bootstrap.Modal(document.getElementById('DeleteEmployee'), {});
+            modal.show();
+        }
+
+        function CloseDeviceConfigModal() {
+            var DeviceConfigModal = document.getElementById('DeviceConfig');
+            var modal = bootstrap.Modal.getInstance(DeviceConfigModal);
+            modal.hide();
+        }
+
+        function OpenDeviceConfigModal() {
+            if (!currentSN) {
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
+                return;
+            }
+            $("#loader-lu").addClass("is-active");
+            fetch("{{ route('devices.get-device-config') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ sn: currentSN })
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            $("#loader-lu").removeClass("is-active");
+                            var configs = data.configs;
+                            document.getElementById('deviceName').value = configs.name;
+                            document.getElementById('timeZone').value = configs.timezone;
+                            document.getElementById('delay').value = configs.delay;
+                            document.getElementById('transfer').value = configs.realtime;
+                            document.getElementById('transferTime').value = configs.transinterval;
+                            document.getElementById('transtimes').value = configs.transtimes;
+                            if(configs.realtime == "1")
+                            {
+                                document.getElementById('transferTime').disabled = true;
+                                document.getElementById('transtimes').disabled = true;
+                            }
+                            else 
+                            {
+                                document.getElementById('transferTime').disabled = false;
+                                document.getElementById('transtimes').disabled = false;
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Swal.fire('Error al consultar la informacion del lector', '', 'error');
+                            $("#loader-lu").removeClass("is-active");
+                        });
+            var modal = new bootstrap.Modal(document.getElementById('DeviceConfig'), {});
+            modal.show();
+        }
+
         function CloseNewUserModal() {
             var newUserModal = document.getElementById('newUserModal');
             var modal = bootstrap.Modal.getInstance(newUserModal);
@@ -736,66 +971,6 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js"></script>
 
-    <script> 
-        (
-            function($) {
-                "use strict";
-                $('.dropdown-container')
-                    .on('click', '.dropdown-button', function() {
-                        $(this).siblings('.dropdown-list').toggle();
-                    })
-                    .on('input', '.dropdown-search', function() {
-                        var target = $(this);
-                        var dropdownList = target.closest('.dropdown-list');
-                        var search = target.val().toLowerCase();
-                    
-                        if (!search) {
-                            dropdownList.find('li').show();
-                            return false;
-                        }
-                    
-                        dropdownList.find('li').each(function() {
-                            var text = $(this).text().toLowerCase();
-                            var match = text.indexOf(search) > -1;
-                            $(this).toggle(match);
-                        });
-                    })
-                    .on('change', '[type="checkbox"]', function() {
-                        var container = $(this).closest('.dropdown-container');
-                        var numChecked = container. find('[type="checkbox"]:checked').length;
-                        container.find('.quantity').text(numChecked || 'Cualquiera');
-                    });
-
-                // <li> template
-                var stateTemplate = _.template(
-                    '<li>' +
-                        '<label class="checkbox-wrap"><input name="<%= abbreviation %>" type="checkbox"> <span for="<%= abbreviation %>"><%= capName %></span> <span class="checkmark"></span></label>' +
-                        // '<label for="<%= abbreviation %>"><%= capName %></label>' +
-                    '</li>'
-                );
-
-                fetch("{{ route('employee.list-employees') }}", {
-                                    method: 'GET',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                    },
-                                })
-                                .then(r => r.json())
-                                .then(data => {
-                                    var empData = data.employees;
-                                    var i;
-                                    // Llenar lista con empleados
-                                    for (i = 0; i < empData.length; i++) {
-                                        var emp = empData[i];
-                                        var capName = emp.employee_id + " - " + emp.name.charAt(0).toUpperCase() + emp.name.slice(1);
-                                        var listItem = stateTemplate({ abbreviation: emp.employee_id, capName: capName });
-                                        $('.dropdown-list ul').append(listItem);
-                                    }
-                                });
-                    
-    })(jQuery);
-    </script>
     <script>
         function DownloadData() {
             if (!currentSN) {
@@ -890,127 +1065,143 @@
         }
     </script>
 
-        <script> 
-        (
-            function($) {
-                "use strict";
-                $('.dropdown-container')
-                    .on('click', '.dropdown-button', function() {
-                        $(this).siblings('.dropdown-list').toggle();
-                    })
-                    .on('input', '.dropdown-search', function() {
-                        var target = $(this);
-                        var dropdownList = target.closest('.dropdown-list');
-                        var search = target.val().toLowerCase();
-                    
-                        if (!search) {
-                            dropdownList.find('li').show();
-                            return false;
-                        }
-                    
-                        dropdownList.find('li').each(function() {
-                            var text = $(this).text().toLowerCase();
-                            var match = text.indexOf(search) > -1;
-                            $(this).toggle(match);
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            document.querySelectorAll(".dropdown-container").forEach(container => {
+
+                container.addEventListener("click", e => {
+                    if (e.target.classList.contains("dropdown-button")) {
+                        const list = container.querySelector(".dropdown-list");
+                        list.classList.toggle("show");
+                    }
+                });
+
+                container.addEventListener("input", e => {
+                    if (e.target.classList.contains("dropdown-search")) {
+                        const search = e.target.value.toLowerCase();
+                        const items = container.querySelectorAll(".dropdown-list li");
+
+                        items.forEach(li => {
+                            const text = li.textContent.toLowerCase();
+                            li.style.display = text.includes(search) ? "" : "none";
                         });
-                    })
-                    .on('change', '[type="checkbox"]', function() {
-                        var container = $(this).closest('.dropdown-container');
-                        var numChecked = container. find('[type="checkbox"]:checked').length;
-                        container.find('.quantity').text(numChecked || 'Any');
+                    }
+                });
+
+                container.addEventListener("change", e => {
+                    if (e.target.type === "checkbox") {
+                        const checked = container.querySelectorAll('input[type="checkbox"]:checked').length;
+                        container.querySelector(".quantity").textContent = checked || "Any";
+                    }
+                });
+
+            });
+
+            function createListItem(emp) {
+                const li = document.createElement("li");
+                const capName = `${emp.employee_id} - ${emp.name.charAt(0).toUpperCase()}${emp.name.slice(1)}`;
+
+                li.innerHTML = `
+                    <label class="checkbox-wrap">
+                        <input name="${emp.employee_id}" type="checkbox">
+                        <span>${capName}</span>
+                        <span class="checkmark"></span>
+                    </label>
+                `;
+                return li;
+            }
+
+            const allEmployeeLists = document.querySelectorAll(".dropdown-list ul");
+
+            fetch("{{ route('employee.list-employees') }}", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                const empData = data.employees;
+
+                allEmployeeLists.forEach(ul => {
+                    empData.forEach(emp => {
+                        ul.appendChild(createListItem(emp));
                     });
-
-                // <li> template
-                var stateTemplate = _.template(
-                    '<li>' +
-                        '<label class="checkbox-wrap"><input name="<%= abbreviation %>" type="checkbox"> <span for="<%= abbreviation %>"><%= capName %></span> <span class="checkmark"></span></label>' +
-                        // '<label for="<%= abbreviation %>"><%= capName %></label>' +
-                    '</li>'
-                );
-
-                // JSON de Empleados para propósitos de demostración
-                fetch("{{ route('employee.list-employees') }}", {
-                                    method: 'GET',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                                    },
-                                })
-                                .then(r => r.json())
-                                .then(data => {
-                                    var empData = data.employees;
-                                    var i;
-                                    // Llenar lista con empleados
-                                    for (i = 0; i < empData.length; i++) {
-                                        var emp = empData[i];
-                                        var capName = emp.employee_id + " - " + emp.name.charAt(0).toUpperCase() + emp.name.slice(1);
-                                        var listItem = stateTemplate({ abbreviation: emp.employee_id, capName: capName });
-                                        $('.dropdown-list-upload ul').append(listItem);
-                                    }
-                                });
-                    
-    })(jQuery);
+                });
+            });
+        });
     </script>
 
     <script> 
-        (
-            function($) {
-                "use strict";
-                $('.dropdown-container')
-                    .on('click', '.dropdown-button', function() {
-                        $(this).siblings('.dropdown-list').toggle();
-                    })
-                    .on('input', '.dropdown-search', function() {
-                        var target = $(this);
-                        var dropdownList = target.closest('.dropdown-list');
-                        var search = target.val().toLowerCase();
-                    
-                        if (!search) {
-                            dropdownList.find('li').show();
-                            return false;
-                        }
-                    
-                        dropdownList.find('li').each(function() {
-                            var text = $(this).text().toLowerCase();
-                            var match = text.indexOf(search) > -1;
-                            $(this).toggle(match);
+
+        document.addEventListener("DOMContentLoaded", () => {
+
+            document.querySelectorAll(".dropdown-container").forEach(container => {
+
+                container.addEventListener("click", e => {
+                    if (e.target.classList.contains("dropdown-button")) {
+                        const list = container.querySelector(".dropdown-list-permissions");
+                        list.classList.toggle("show");
+                    }
+                });
+
+                container.addEventListener("input", e => {
+                    if (e.target.classList.contains("dropdown-search")) {
+                        const search = e.target.value.toLowerCase();
+                        const items = container.querySelectorAll(".dropdown-list-permissions li");
+
+                        items.forEach(li => {
+                            const text = li.textContent.toLowerCase();
+                            li.style.display = text.includes(search) ? "" : "none";
                         });
-                    })
-                    .on('change', '[type="checkbox"]', function() {
-                        var container = $(this).closest('.dropdown-container');
-                        var numChecked = container. find('[type="checkbox"]:checked').length;
-                        container.find('.quantity').text(numChecked || 'Any');
-                    });
+                    }
+                });
 
+                container.addEventListener("change", e => {
+                    if (e.target.type === "checkbox") {
+                        const checked = container.querySelectorAll('input[type="checkbox"]:checked').length;
+                        container.querySelector(".quantity").textContent = checked || "Any";
+                    }
+                });
 
-                var permissions = [
-                    {name: 'Reiniciar', id: 'device-reboot'},
-                    {name: 'Borrar administrador', id: 'device-clear-admin'},
-                    {name: 'Borrar datos', id: 'device-clear-data'},
-                    {name: 'Borrar registro', id: 'device-clear-log'},
-                    {name: 'Periodo de captura', id: 'device-capture-setting'},
-                    {name: 'Periodo de acceso duplicado', id: 'device-punch-period'},
-                    {name: 'Enrolamiento remoto', id: 'device-remote-enroll'},
-                    {name: 'Descargar datos de usuarios', id: 'device-download-data'},
-                    {name: 'Subir datos de usuarios', id: 'device-upload-data'}
-                ];
+            });
 
-                var stateTemplate = _.template(
-                    '<li>' +
-                        '<label class="checkbox-wrap"><input name="<%= id %>" type="checkbox"> <span for="<%= id %>"><%= capName %></span> <span class="checkmark"></span></label>' +
-                        // '<label for="<%= abbreviation %>"><%= capName %></label>' +
-                    '</li>'
-                );
+            function createListItem(usr) {
+                const li = document.createElement("li");
+                const capName = `${usr.description}`;
 
-                var i = 0;
-                for (i = 0; i < permissions.length; i++) {
-                    var emp = permissions[i];
-                    var capName = emp.name.charAt(0).toUpperCase() + emp.name.slice(1);
-                    var listItem = stateTemplate({ id: emp.id, capName: capName });
-                    $('.dropdown-list-permissions ul').append(listItem);
+                li.innerHTML = `
+                    <label class="checkbox-wrap">
+                        <input name="${usr.name}" type="checkbox">
+                        <span>${capName}</span>
+                        <span class="checkmark"></span>
+                    </label>
+                `;
+                return li;
+            }
+
+            const allPermissionsLists = document.querySelectorAll(".dropdown-list-permissions ul");
+
+            fetch("{{ route('users.get-permissions') }}", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
                 }
-                    
-    })(jQuery);
+            })
+            .then(r => r.json())
+            .then(data => {
+                const usrData = data.permissions;
+
+                allPermissionsLists.forEach(ul => {
+                    usrData.forEach(usr => {
+                        ul.appendChild(createListItem(usr));
+                    });
+                });
+            });
+        });
 
         function newUserForm(){
             document.getElementById('newUserModalTitle').textContent = 'Nuevo usuario';
@@ -1048,8 +1239,8 @@
                     checkbox.checked = userData.permissions.some(p => p.name === checkbox.name);
 
                 })
+                $("#loader-lu").removeClass("is-active");
             });
-            $("#loader-lu").removeClass("is-active");
         }
 
         function dropUser(email){
@@ -1145,7 +1336,7 @@
             const photo = document.getElementById('Photos').checked;
 
             if(many) {
-                const listEmployees = document.querySelectorAll('.dropdown-list-upload ul li');
+                const listEmployees = document.querySelectorAll('.dropdown-list ul li');
                 const checkedEmpIds = [];
                 listEmployees.forEach((item) => {
                     const checkbox = item.querySelector('input[type="checkbox"]');
