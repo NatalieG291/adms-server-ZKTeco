@@ -579,7 +579,7 @@ public function fdata(Request $request)
                 ]);
         }
 
-        if(($log_count >= 5) || ($photo_count >= 100)){
+        if(($log_count >= 100) || ($photo_count >= 100)){
             DB::table('device_commands')
                 ->insert([
                     'device_id' => $device->id,
@@ -738,8 +738,7 @@ public function fdata(Request $request)
                         'updated_at' => now(),
                     ]);
                 if($cmd == 'CHECK'){
-                    //$device = DB::table('devices')->select('transaction_count', 'photo_count')->where('no_sn', $sn)->first();
-                    if($device->transaction_count >= 5){
+                    if($device->transaction_count >= 100){
                         DB::table('device_commands')
                         ->insert([
                             'device_id' => $device->id,
