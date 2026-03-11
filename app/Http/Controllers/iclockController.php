@@ -579,7 +579,7 @@ public function fdata(Request $request)
                 ]);
         }
 
-        if(($log_count >= 100) || ($photo_count >= 100)){
+        if(($log_count >= 5) || ($photo_count >= 100)){
             DB::table('device_commands')
                 ->insert([
                     'device_id' => $device->id,
@@ -587,25 +587,6 @@ public function fdata(Request $request)
                     'data' => '{}',
                     'created_at' => now(),
                 ]);
-            if($log_count >= 100) {
-                DB::table('device_commands')
-                    ->insert([
-                        'device_id' => $device->id,
-                        'command' => 'CLEAR LOG',
-                        'data' => '{}',
-                        'created_at' => now(),
-                    ]);                
-            }
-            if($photo_count >= 100) {
-                DB::table('device_commands')
-                    ->insert([
-                        'device_id' => $device->id,
-                        'command' => 'CLEAR PHOTO',
-                        'data' => '{}',
-                        'created_at' => now(),
-                    ]);        
-            }
-
         }
 
         // $cmd = DB::table('device_commands')
@@ -756,8 +737,28 @@ public function fdata(Request $request)
                         'response' => $cmd,
                         'updated_at' => now(),
                     ]);
-
+                if($cmd == 'CHECK'){
+                    //$device = DB::table('devices')->select('transaction_count', 'photo_count')->where('no_sn', $sn)->first();
+                    if($device->transaction_count >= 5){
+                        DB::table('device_commands')
+                        ->insert([
+                            'device_id' => $device->id,
+                            'command' => 'CLEAR LOG',
+                            'data' => '{}',
+                            'created_at' => now(),
+                        ]);  
+                    }
+                    if($device->photo_count >= 100){
+                        DB::table('device_commands')
+                        ->insert([
+                            'device_id' => $device->id,
+                            'command' => 'CLEAR PHOTO',
+                            'data' => '{}',
+                            'created_at' => now(),
+                        ]);  
+                    }
                 }
+            }
             else {
                 DB::table('device_commands')
                     ->where('id', $id)
