@@ -587,25 +587,6 @@ public function fdata(Request $request)
                     'data' => '{}',
                     'created_at' => now(),
                 ]);
-            if($log_count >= 100) {
-                DB::table('device_commands')
-                    ->insert([
-                        'device_id' => $device->id,
-                        'command' => 'CLEAR LOG',
-                        'data' => '{}',
-                        'created_at' => now(),
-                    ]);                
-            }
-            if($photo_count >= 100) {
-                DB::table('device_commands')
-                    ->insert([
-                        'device_id' => $device->id,
-                        'command' => 'CLEAR PHOTO',
-                        'data' => '{}',
-                        'created_at' => now(),
-                    ]);        
-            }
-
         }
 
         // $cmd = DB::table('device_commands')
@@ -756,8 +737,27 @@ public function fdata(Request $request)
                         'response' => $cmd,
                         'updated_at' => now(),
                     ]);
-
+                if($cmd == 'CHECK'){
+                    if($device->transaction_count >= 100){
+                        DB::table('device_commands')
+                        ->insert([
+                            'device_id' => $device->id,
+                            'command' => 'CLEAR LOG',
+                            'data' => '{}',
+                            'created_at' => now(),
+                        ]);  
+                    }
+                    if($device->photo_count >= 100){
+                        DB::table('device_commands')
+                        ->insert([
+                            'device_id' => $device->id,
+                            'command' => 'CLEAR PHOTO',
+                            'data' => '{}',
+                            'created_at' => now(),
+                        ]);  
+                    }
                 }
+            }
             else {
                 DB::table('device_commands')
                     ->where('id', $id)
