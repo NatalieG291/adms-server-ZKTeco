@@ -25,7 +25,7 @@
                 @foreach($photos as $photo)
                     <tr>
                         <td>{{ $photo->id }}</td>
-                        <td class="d-none d-xl-table-cell">{{ $photo->sn }}</td>
+                        <td class="d-none d-xl-table-cell">{{ $photo->descripcion }}</td>
                         <td>{{ $photo->employee_id }}</td>
                         <td>{{ $photo->timestamp }}</td>
                         <td><img src="{{ asset('storage/attphoto/' . $photo->filename) }}" width="100" height="100"></td>
