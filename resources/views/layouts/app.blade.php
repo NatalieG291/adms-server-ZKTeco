@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" fetchpriority="high">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
     <script>
         function navActive() {
             const pathname = window.location.pathname;
@@ -22,6 +25,209 @@
             }
         }
     </script>
+
+    <style data-eqcss-read="true">
+    @import url("https://fonts.googleapis.com/css?family=Lato:400,400i,700");
+    @import url("https://fonts.googleapis.com/css?family=Inconsolata:400,700");
+
+    input, button {
+        color: inherit;
+        font: inherit;
+    }
+    strong { font-weight: bold; }
+    p { margin-bottom: 1em; }
+    p:last-child { margin-bottom: 0; }
+
+    .hands .finger, .value {
+        font-family: Inconsolata, Consolas, monospace;
+    }
+
+    .info {
+        font-size: 2vmin;
+        padding: .5em;
+        text-align: center;
+        background: #FFF3E0;
+        border: .5vmin solid rgba(0, 0, 0, .1);
+        border-left: 0;
+        border-right: 0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+
+    /* Hand */
+    .left-hand {
+        margin-right: 13.5% !important;
+        margin-top: 25% !important;
+    }
+
+    .right-hand {
+        margin-left: 13.5% !important;
+        margin-top: 25% !important;
+    }
+    .hands {
+        text-align: center;
+    }
+    .hands .hand {
+        background: #CFD8DC;
+        border-radius: 60% 60% 80% 80%;
+        width: 20vmin;
+        height: 25vmin;
+        margin: 1vmin;
+        position: relative;
+        display: inline-grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+    }
+    .hands .hand#hand_2 {
+        transform: scaleX(-1);
+    }
+    .hands .hand > label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        cursor: pointer;
+    }
+
+    /* All Fingers */
+    .hands .finger {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        cursor: pointer;
+        position: relative;
+        
+        background-color: #CFD8DC;
+        transition: background 0.2s, transform 0.2s;
+    }
+    .hands .finger:checked {
+        background-color: #DCEDC8;
+    }
+    .hands .finger:after {
+        display: block;
+        font-size: 2.4vmin;
+        padding: 1vmin 0;
+        text-align: center;
+    }
+
+    /* Specific Fingers */
+    .hands .finger.thumb {
+        border-radius: 30% 30% 30% 30%;
+        grid-row: 3;
+        grid-column: 4;
+        margin: .5vmin auto;
+        margin-left: 105%;
+        margin-right: -150%;
+        top: -30%;
+        transform-origin: center right;
+    }
+    .hands .finger.index,
+    .hands .finger.middle,
+    .hands .finger.ring,
+    .hands .finger.pinky {
+        border-radius: 30% 30% 30% 30%;
+        grid-row: 1;
+        margin: auto .5vmin;
+        margin-bottom: 130%;
+        transform-origin: bottom left;
+    }
+    .hands .finger.index { margin-top: -260%; grid-column: 4; }
+    .hands .finger.middle { margin-top: -290%; grid-column: 3; }
+    .hands .finger.ring { margin-top: -240%; grid-column: 2; }
+    .hands .finger.pinky { margin-top: -180%; grid-column: 1; }
+
+    /* Specific Finger states */
+    .hands .finger { */
+        /* Transformations */
+        --checked-true: scaleY(1);
+        --checked-false: scaleY(1);
+        --checked: var(--checked-false);
+        --flipped-true: scaleX(-1);
+        --flipped-false: scaleX(1);
+        --flipped: var(--flipped-false);
+        transform: var(--checked);
+    }
+    .hands #hand_2 .finger {
+        --flipped: var(--flipped-true);
+    }
+
+    .hands {
+        /* Assign values */
+        --value-thumb_1: 4;
+        --value-index_1: 3;
+        --value-middle_1: 2;
+        --value-ring_1: 1;
+        --value-pinky_1: 0;
+        --value-pinky_2: 9;
+        --value-ring_2: 8;
+        --value-middle_2: 7;
+        --value-index_2: 6;
+        --value-thumb_2: 5;
+        
+        /* Initial added values */
+        --added-thumb_1: 	0;
+        --added-index_1: 	0;
+        --added-middle_1: 0;
+        --added-ring_1: 	0;
+        --added-pinky_1: 	0;
+        --added-pinky_2: 	0;
+        --added-ring_2: 	0;
+        --added-middle_2: 0;
+        --added-index_2: 	0;
+        --added-thumb_2: 	0;
+        
+        /* Total */
+        --value-total: calc(
+            var(--added-thumb_1) + var(--added-index_1) + var(--added-middle_1) + var(--added-ring_1) + var(--added-pinky_1) + var(--added-pinky_2) + var(--added-ring_2) + var(--added-middle_2) + var(--added-index_2) + var(--added-thumb_2)
+        );
+        
+        /* Convert values to strings */
+        counter-reset:
+            value-thumb_1 var(--value-thumb_1)
+            value-index_1 var(--value-index_1)
+            value-middle_1 var(--value-middle_1)
+            value-ring_1 var(--value-ring_1)
+            value-pinky_1 var(--value-pinky_1)
+            value-thumb_2 var(--value-thumb_2)
+            value-index_2 var(--value-index_2)
+            value-middle_2 var(--value-middle_2)
+            value-ring_2 var(--value-ring_2)
+            value-pinky_2 var(--value-pinky_2)
+            value-total var(--value-total)
+            
+            added-thumb_1 var(--added-thumb_1)
+            added-index_1 var(--added-index_1)
+            added-middle_1 var(--added-middle_1)
+            added-ring_1 var(--added-ring_1)
+            added-pinky_1 var(--added-pinky_1)
+            added-thumb_2 var(--added-thumb_2)
+            added-index_2 var(--added-index_2)
+            added-middle_2 var(--added-middle_2)
+            added-ring_2 var(--added-ring_2)
+            added-pinky_2 var(--added-pinky_2)
+        ;
+    }
+
+    /* Have fingers display values */
+    .hands .finger.thumb { --content: counter(value-thumb_1); }
+    .hands .finger.index { --content: counter(value-index_1); }
+    .hands .finger.middle { --content: counter(value-middle_1); }
+    .hands .finger.ring { --content: counter(value-ring_1); }
+    .hands .finger.pinky { --content: counter(value-pinky_1); }
+    .hands #hand_2 .finger.thumb { --content: counter(value-thumb_2); }
+    .hands #hand_2 .finger.index { --content: counter(value-index_2); }
+    .hands #hand_2 .finger.middle { --content: counter(value-middle_2); }
+    .hands #hand_2 .finger.ring { --content: counter(value-ring_2); }
+    .hands #hand_2 .finger.pinky { --content: counter(value-pinky_2); }
+    .hands .finger:after {
+        content: var(--content, "0");
+        transform: var(--checked) var(--flipped);
+    }
+    </style>
+
     <style>
         thead th {
             position: sticky;
@@ -362,11 +568,12 @@
         @yield('content')
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.5.1.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
     <script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script src="https://cdn.datatables.net/1.11.4/js/dataTables.bootstrap5.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> -->
     <script>
         $(document).ready(function() {
             $('.navbar-toggler').on('click', function() {
@@ -512,7 +719,7 @@
     <script>
         let currentEmployee = null;
 
-        function setCurrentEmployee(empid,name,pri,pri_id,passwd,card,verify) {
+        function setCurrentEmployee(empid,name,pri,pri_id,passwd,card,verify,fingerprints) {
             currentEmployee = empid;
             document.getElementById('employeeName').value = name;
             document.getElementById('employeePri').value = pri_id;
@@ -520,6 +727,12 @@
             document.getElementById('employeeCard').value = card;
             document.getElementById('employeeVerify').value = verify;
             document.getElementById('employeePhoto').src = '/storage/userpic/' + empid + '.jpg';
+            if(fingerprints == '1'){
+                document.getElementById('fingers').value = fingerprints + ' Huella registrada';
+            }
+            else {
+                document.getElementById('fingers').value = fingerprints + ' Huellas registradas';
+            }
         }
     </script>
     <script>
@@ -531,15 +744,28 @@
             }
 
             const empid = document.getElementById('empid').value;
-            const dedo = document.getElementById('dedo').value;
+            const dedo = new Array();
+            const replicar = document.getElementById('send').checked;
+            const lectores = $('#devices').select2('data');
+            var fingers = ["#finger-thumb_1", "#finger-index_1", "#finger-middle_1", "#finger-ring_1", "#finger-pinky_1", "#finger-pinky_2", "#finger-ring_2", "#finger-middle_2", "#finger-index_2", "#finger-thumb_2"]
+            for (var i = 0; i < fingers.length; i++) {
+                if(document.querySelector("[finger-index='" + (Number(i)) + "']").checked == true){
+                    dedo.push(i);
+                }
+            }
 
             if (!empid) {
                 Swal.fire('Ningún ID de empleado ingresado', '', 'error');
                 return;
             }
 
-            if (!dedo) {
+            if (dedo.length == 0) {
                 Swal.fire('Por favor seleccione un dedo', '', 'error');
+                return;
+            }
+
+            if((replicar) && (lectores.length == 0)){
+                Swal.fire('Seleccione un lector', '', 'warning');
                 return;
             }
 
@@ -558,7 +784,71 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}'
                         },
-                        body: JSON.stringify({ sn: currentSN, empid: empid, dedo: dedo })
+                        body: JSON.stringify({ sn: currentSN, empid: empid, dedo: dedo, replicar: replicar, lectores: lectores })
+                    })
+                    .then(r => r.json())
+                    .then(data => Swal.fire(data.message || "Solicitud de inscripción enviada", '', 'success'))
+                    .then(() => {
+                        CloseEnrollModal();
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire('Error al enviar la solicitud de inscripción', '', 'error');
+                    });
+                }
+            });
+        }
+
+    function EnrollEmployeeKardex() {
+
+            var lector = document.getElementById('devices-select-Enroll').value;
+            if (!lector) {
+                Swal.fire('Ningún dispositivo seleccionado', '', 'error');
+                return;
+            }
+
+            const empid = document.getElementById('empid').value;
+            const dedo = new Array();
+            const replicar = document.getElementById('send').checked;
+            const lectores = $('#devicesEnroll').select2('data');
+            var fingers = ["#finger-thumb_1", "#finger-index_1", "#finger-middle_1", "#finger-ring_1", "#finger-pinky_1", "#finger-pinky_2", "#finger-ring_2", "#finger-middle_2", "#finger-index_2", "#finger-thumb_2"]
+            for (var i = 0; i < fingers.length; i++) {
+                if(document.querySelector("[finger-index='" + (Number(i)) + "']").checked == true){
+                    dedo.push(i);
+                }
+            }
+
+            if (!empid) {
+                Swal.fire('Ningún ID de empleado ingresado', '', 'error');
+                return;
+            }
+
+            if (dedo.length == 0) {
+                Swal.fire('Por favor seleccione un dedo', '', 'error');
+                return;
+            }
+
+            if((replicar) && (lectores.length == 0)){
+                Swal.fire('Seleccione un lector', '', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: '¿Inscribir empleado ' + empid + ' con dedo ' + dedo + ' en el dispositivo ' + currentSN + '?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: '¡Sí, inscribir!',
+                cancelButtonText: 'No, cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch("{{ route('devices.enroll') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ sn: lector, empid: empid, dedo: dedo, replicar: replicar, lectores: lectores })
                     })
                     .then(r => r.json())
                     .then(data => Swal.fire(data.message || "Solicitud de inscripción enviada", '', 'success'))
@@ -807,8 +1097,66 @@
                 Swal.fire('Ningún dispositivo seleccionado', '', 'error');
                 return;
             }
+            var fingers = ["#finger-thumb_1", "#finger-index_1", "#finger-middle_1", "#finger-ring_1", "#finger-pinky_1", "#finger-pinky_2", "#finger-ring_2", "#finger-middle_2", "#finger-index_2", "#finger-thumb_2"]
+            for (var i = 0; i < fingers.length; i++) {
+                document.querySelector("[finger-index='" + (Number(i)) + "']").checked = false;
+            }
+            document.getElementById('send').checked = false;
+            document.getElementById('empid').value = '';
             var modal = new bootstrap.Modal(document.getElementById('enrollModal'), {});
             modal.show();
+            $('#devices').select2({
+                dropdownParent: $('#enrollModal .modal-body')
+            });
+            $('#devices').val(null).trigger('change');
+            $('#devices').val('all').trigger('change');
+        }
+
+        function OpenEnrollEmployeeModal() {
+            $("#loader-lu").addClass("is-active");
+            var fingers = ["#finger-thumb_1", "#finger-index_1", "#finger-middle_1", "#finger-ring_1", "#finger-pinky_1", "#finger-pinky_2", "#finger-ring_2", "#finger-middle_2", "#finger-index_2", "#finger-thumb_2"]
+            for (var i = 0; i < fingers.length; i++) {
+                document.querySelector("[finger-index='" + (Number(i)) + "']").checked = false;
+            }
+            fetch("{{ route('employee.fingerprints') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ pin: currentEmployee })
+            })
+            .then(r => r.json())
+            .then(data => {
+                $("#loader-lu").removeClass("is-active");
+                const fingerprints = data.fids;
+                fingerprints.forEach((finger) => {
+                    document.querySelector("[finger-index='" + (Number(finger)) + "']").style.backgroundColor = "#655cca";
+                    document.querySelector("[finger-index='" + (Number(finger)) + "']").disabled = true;
+                })
+                document.getElementById('empid').value = currentEmployee;
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire('Error al obtener las huellas del empleado', '', 'error');
+                $("#loader-lu").removeClass("is-active");
+            });
+
+            document.getElementById('send').checked = false;
+            document.getElementById('empid').value = '';
+            var modal = new bootstrap.Modal(document.getElementById('enrollModal'), {});
+            modal.show();
+            $('#devicesEnroll').select2({
+                dropdownParent: $('#enrollModal .modal-body')
+            });
+            $('#devicesEnroll').val(null).trigger('change');
+            $('#devicesEnroll').val('all').trigger('change');
+
+            $('#devices-select-Enroll').select2({
+                dropdownParent: $('#enrollModal .modal-body')
+            });
+            $('#devices-select-Enroll').val(null).trigger('change');
+            $('#devices-select-Enroll').val('all').trigger('change');
         }
 
         function ClosePictureModal() {
@@ -1515,6 +1863,9 @@
                 }
             });
         }
+        // $('#devices').select2({
+        //     dropdownParent: $('#enrollModal .modal-body')
+        // });
     </script>
 </body>
 </html>

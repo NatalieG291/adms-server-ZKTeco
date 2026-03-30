@@ -58,7 +58,8 @@ class EmployeeController extends Controller
                     when verify = 19 then 'Rostro, huella y tarjeta'
                     when verify = 20 then 'Rostro, huella y contraseña'
                     end as verify,
-                emp_photos.photo
+                emp_photos.photo,
+                finger_count.total
                 FROM (
                   SELECT id,employee_id,name,pri,pri as pri_id,passwd,card,[group],tz,verify,vice_card,start_datetime,end_datetime,updated_at,
                          ROW_NUMBER() OVER (ORDER BY id DESC) AS rn
@@ -66,6 +67,7 @@ class EmployeeController extends Controller
                   ".$filterCondition."
                 ) AS t
                 LEFT JOIN emp_photos ON T.employee_id = emp_photos.employee_id
+                LEFT JOIN (select pin, COUNT(pin) as total from fingerprints group by pin) as finger_count ON T.employee_id = finger_count.pin
                 WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
         $params[] = $start + 1;
         $params[] = $end;
@@ -92,6 +94,13 @@ class EmployeeController extends Controller
             ->orderBy('online', 'DESC')->get();
 
         return view('devices.employees', compact('employees', 'devices'));
+    }
+
+    public function fingerprints(Request $request){
+        $employeeId = $request->input('pin');
+        $fingers = DB::table('fingerprints')->select('fid')->where('pin', $employeeId)->pluck('fid');
+
+        return response()->json(['fids' => $fingers]);
     }
 
     public function UploadPhoto(Request $request)
@@ -168,6 +177,24 @@ class EmployeeController extends Controller
                         'created_at' => now(),
                     ]);
 
+                    $fpdata = DB::table('fingerprints')->where('pin', $employeeId)->get();
+                    foreach($fpdata as $fingerprint) {
+                        $q['device_id'] = $deviceId;
+                        $q['command'] = "DATA UPDATE FINGERTMP PIN=$fingerprint->pin\tFID=$fingerprint->fid\tSize=$fingerprint->size\tValid=$fingerprint->valid\tTMP=$fingerprint->template";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+
+                    $fcdata = DB::table('faces')->where('pin', $employeeId)->get();
+                    foreach($fcdata as $face) {
+                        $q['device_id'] = $deviceId;
+                        $q['command'] = "DATA UPDATE FACE\tPIN=$face->pin\tFID=$face->fid\tSize=$face->size\tValid=1\tTMP=$face->template";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+
                     $pdata = DB::table('emp_photos')->where('employee_id', $employeeId)->first();
                     if($pdata) {
                         $base64 = base64_encode(Storage::disk('public')->get("userpic/$employeeId.jpg"));
@@ -188,6 +215,25 @@ class EmployeeController extends Controller
                         'data' => '{}',
                         'created_at' => now(),
                     ]);
+
+                    $fpdata = DB::table('fingerprints')->where('pin', $employeeId)->get();
+                    foreach($fpdata as $fingerprint) {
+                        $q['device_id'] = $devices;
+                        $q['command'] = "DATA UPDATE FINGERTMP PIN=$fingerprint->pin\tFID=$fingerprint->fid\tSize=$fingerprint->size\tValid=$fingerprint->valid\tTMP=$fingerprint->template";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+                    
+                    $fcdata = DB::table('faces')->where('pin', $employeeId)->get();
+                    foreach($fcdata as $face) {
+                        $q['device_id'] = $devices;
+                        $q['command'] = "DATA UPDATE FACE\tPIN=$face->pin\tFID=$face->fid\tSize=$face->size\tValid=1\tTMP=$face->template";
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+
                     $pdata = DB::table('emp_photos')->where('employee_id', $employeeId)->first();
                     if($pdata) {
                         $base64 = base64_encode(Storage::disk('public')->get("userpic/$employeeId.jpg"));

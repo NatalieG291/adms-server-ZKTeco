@@ -23,7 +23,7 @@
             <table class="table table-bordered data-table" id="employees">
                 <thead>
                     <tr>
-                        <th>Editar</th>
+                        <th>Acciones</th>
                         <th>Clave</th>
                         <th>Nombre</th>
                         <th class="d-none d-xl-table-cell">Privilegio</th>
@@ -37,7 +37,8 @@
                     @foreach ($employees as $d)
                         <tr>
                             <td>
-                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editEmployeeModal" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}')">Editar</button>
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editEmployeeModal" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}', '{{ $d->total }}')">Editar</button>
+                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#DeleteEmployeeModal" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}, {{ $d->total }}')">Eliminar</button>
                             </td>
                             <td>{{ $d->employee_id }}</td>
                             <td>{{ $d->name }}</td>
@@ -55,6 +56,7 @@
     <div class="d-flex justify-content-center">
                 {{ $employees->onEachSide(1)->links() }}  {{-- Tampilkan pagination jika ada --}}
     </div>
+    <div class="loader loader-double" id="loader-lu"></div>
     <div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-labelledby="editEmployeeModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -72,7 +74,7 @@
                             </div>
                         </div>
                         <div class="col-md-9">
-                            <div class="row g-3">
+                            <div class="row g-3 align-items-center">
                                 <div class="col-12">
                                     <label for="employeeName" class="form-label">Nombre</label>
                                     <input type="text" class="form-control" id="employeeName" name="name">
@@ -123,16 +125,25 @@
                                     </select>   
                                 </div>
                                 <div class="col-6">
-                                    <input class="form-check-input" type="checkbox" id="send" name="sendToDevices">
-                                    <label class="form-check-label" for="send">Enviar a dispositivos</label>
+                                    <label for="fingers" class="form-label">Huellas registradas</label>
+                                    <div class="input-group mb-3">
+                                        <input id="fingers" type="text" class="form-control" aria-label="fingers" aria-describedby="basic-addon2" disabled>
+                                        <button class="btn btn-outline-secondary" type="button" id="basic-addon2" onclick="OpenEnrollEmployeeModal()">Enrolar</button>
+                                    </div>
                                 </div>
                                 <div class="col-6">
-                                    <select class="form-select" id="devices" name="devices[]">
-                                        <option value="all">Todos los dispositivos</option>
-                                        @foreach ($devices as $device)
-                                            <option value="{{ $device->id }}">{{ $device->descripcion }}</option>
-                                        @endforeach
-                                    </select>
+                                    <label class="form-label" for="send">Enviar a dispositivos</label>
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-text">
+                                            <input class="form-check-input" type="checkbox" id="send" name="sendToDevices">
+                                        </div>
+                                        <select class="form-select" id="devices" name="devices[]">
+                                            <option value="all">Todos los dispositivos</option>
+                                            @foreach ($devices as $device)
+                                                <option value="{{ $device->id }}">{{ $device->descripcion }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -141,6 +152,77 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" class="btn btn-primary" onclick="EditEmployeeData()">Guardar cambios</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="enrollModal" aria-labelledby="enrollModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="enrollModalLabel">Enrolar empleado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="hands" data-eqcss-0-0="" _has="">
+                        <div class="row g-3 align-items-center">
+                            <div class="col-3"></div>
+                            <div class="col-3">
+                                <label for="empid" class="col-form-label">ID Empleado</label>
+                                <input type="text" style="text-align: center;" class="form-control" id="empid" disabled>
+                            </div>
+                            <div class="col-3">
+                                <label for="empid" class="col-form-label">Enrolar desde</label>
+                                <select class="form-select devices-select-enroll" id="devices-select-Enroll" name="devices-select-Enroll[]" style="width: 100%">
+                                    @foreach ($devices as $device)
+                                        <option value="{{ $device->id }}">{{ $device->descripcion }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-3"></div>
+                            <div class="col-12">
+                                <label class="hand left-hand" id="hand_1" title="Left Hand" aria-label="Left Hand" for="finger-thumb_1">
+                                    <input class="checkbox finger thumb" type="checkbox" id="finger-thumb_1" aria-label="Thumb, Value 4" finger-index="4" value="4">
+                                    <input class="checkbox finger index" type="checkbox" id="finger-index_1" aria-label="Index Finger, Value 3" finger-index="3">
+                                    <input class="checkbox finger middle" type="checkbox" id="finger-middle_1" aria-label="Middle Finger, Value 2" finger-index="2">
+                                    <input class="checkbox finger ring" type="checkbox" id="finger-ring_1" aria-label="Ring Finger, Value 1" finger-index="1">
+                                    <input class="checkbox finger pinky" type="checkbox" id="finger-pinky_1" aria-label="Pinky Finger, Value 0" finger-index="0">
+                                </label>
+                                <label class="hand right-hand" id="hand_2" title="Right Hand" aria-label="Right Hand" for="finger-pinky_2">
+                                    <input class="checkbox finger pinky" type="checkbox" id="finger-pinky_2" aria-label="Pinky Finger, Value 9" finger-index="9">
+                                    <input class="checkbox finger ring" type="checkbox" id="finger-ring_2" aria-label="Ring Finger, Value 8" finger-index="8">
+                                    <input class="checkbox finger middle" type="checkbox" id="finger-middle_2" aria-label="Middle Finger, Value 7" finger-index="7">
+                                    <input class="checkbox finger index" type="checkbox" id="finger-index_2" aria-label="Index Finger, Value 6" finger-index="6">
+                                    <input class="checkbox finger thumb" type="checkbox" id="finger-thumb_2" aria-label="Thumb, Value 5" finger-index="5">
+                                </label>
+                                <script>
+                                    var rsw_series = {
+                                        ":has": true
+                                    };
+                                    var rsw_powered = {
+                                        "eqcss": true
+                                    };
+                                </script>
+                            </div>
+                            <div class="col-6">
+                                <input class="form-check-input" type="checkbox" id="send" name="sendToDevices">
+                                <label class="form-check-label" for="send">Replicar despues de registrar</label>
+                            </div>
+                            <div class="col-6">
+                                <select class="form-select devices-select" id="devicesEnroll" name="devicesEnroll[]" multiple="multiple" style="width: 100%">
+                                    <option value="all">Todos los dispositivos</option>
+                                    @foreach ($devices as $device)
+                                        <option value="{{ $device->id }}">{{ $device->descripcion }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="EnrollEmployeeKardex()" >Enrolar</button>
                 </div>
             </div>
         </div>

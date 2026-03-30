@@ -258,6 +258,43 @@ public function receiveRecords(Request $request)
                     ]
                 );
             }
+            $pending = DB::table('pending_replications')
+                        ->where('pin', $pin[1])
+                        ->where('fid', $fid[1])
+                        ->first();
+            if(!empty($pending)){
+                $devices = json_decode($pending->send_to);
+                if(in_array('all', $devices, true)){
+                    $devices = DB::table('devices')->pluck('id')->toArray();
+                }
+                $name = DB::connection('cliente')
+                        ->table('Supervisor_Giro.EMPPRIN')
+                        ->select(DB::raw("RTRIM(NOMBREP) + ' ' + RTRIM(NOMBREM) + ' ' + RTRIM(NOMBREN) as nombre"))
+                        ->where('CLAVE', substr($pin[1], 1, 10))
+                        ->first();
+                $nombre = $name->nombre ?? '';
+                foreach($devices as $id){
+                    DB::table('device_commands')
+                    ->insert([
+                        'device_id' => $id,
+                        'command' => "DATA UPDATE USERINFO\tPIN=$pin[1]\tName=$nombre\tPri=0\tPasswd=\tCard=\tGrp=1\tVerify=0",
+                        'data' => '{}',
+                        'created_at' => now(),
+                    ]);
+
+                    DB::table('device_commands')
+                    ->insert([
+                        'device_id' => $id,
+                        'command' => "DATA UPDATE FINGERTMP PIN=$pin[1]\tFID=$fid[1]\tSize=$size[1]\tValid=$valid[1]\tTMP=$template",
+                        'data' => '{}',
+                        'created_at' => now(),
+                    ]);
+                }
+                DB::table('pending_replications')
+                    ->where('pin', '=', $pin[1])
+                    ->where('fid', '=', $fid[1])
+                    ->delete();
+            }
 
             $tot++;
         }
@@ -424,7 +461,11 @@ public function receiveUser(Request $request)
             if (isset($matches[1])) {
                 $employee_id = $matches[1];
                 $pri = isset($priMatches[1]) ? $priMatches[1] : null;
-                $name = (isset($nameMatches[1]) && !empty(trim($nameMatches[1]))) ? trim($nameMatches[1]) : '';
+                $name = DB::connection('cliente')
+                        ->table('Supervisor_Giro.EMPPRIN')
+                        ->select(DB::raw("RTRIM(NOMBREP) + ' ' + RTRIM(NOMBREM) + ' ' + RTRIM(NOMBREN) as nombre"))
+                        ->where('CLAVE', substr($employee_id, 1, 10))
+                        ->first();
                 $passwd = isset($passwdMatches[1]) ? $passwdMatches[1] : null;
                 $card = isset($cardMatches[1]) ? $cardMatches[1] : null;
                 $grp = isset($grpMatches[1]) ? $grpMatches[1] : null;
@@ -435,7 +476,7 @@ public function receiveUser(Request $request)
                 $end_datetime = isset($endDatetimeMatches[1]) ? $endDatetimeMatches[1] : null;
                 DB::table('employees')->updateOrInsert(
                     ['employee_id' => $employee_id],
-                    ['name' => $name, 
+                    ['name' => $name->nombre ?? '', 
                     'pri' => $pri, 
                     'passwd' => $passwd,
                     'card' => $card,
@@ -690,6 +731,7 @@ public function fdata(Request $request)
     }
     public function deviceCmdResponse(Request $request)
     {
+        $replicated = [];
         $sn = $request->input('SN');
 
         $raw = $request->getContent();
@@ -757,6 +799,26 @@ public function fdata(Request $request)
                         ]);  
                     }
                 }
+                if($cmd == 'ENROLL_FP'){
+                    $data = DB::table('device_commands')
+                            ->where('id', $id)
+                            ->first();
+                    preg_match('/PIN=(\d+)/', $data->command, $pin);
+                    $name = DB::connection('cliente')
+                            ->table('Supervisor_Giro.EMPPRIN')
+                            ->select(DB::raw("RTRIM(NOMBREP) + ' ' + RTRIM(NOMBREM) + ' ' + RTRIM(NOMBREN) as nombre"))
+                            ->where('CLAVE', substr($pin[1], 1, 10))
+                            ->first();
+                    if(!empty($name)){
+                        DB::table('device_commands')
+                        ->insert([
+                            'device_id' => $data->device_id,
+                            'command' => "DATA UPDATE USERINFO\tPIN=$pin[1]\tName=$name->nombre\tPri=0\tPasswd=\tCard=\tGrp=1\tVerify=0",
+                            'data' => '{}',
+                            'created_at' => now(),
+                        ]);
+                    }
+                }
             }
             else {
                 DB::table('device_commands')
@@ -766,6 +828,11 @@ public function fdata(Request $request)
                         'response' => $cmd,
                         'updated_at' => now(),
                     ]);
+                if($cmd = 'ENROLL_FP'){
+                    DB::table('pending_replications')
+                    ->where('command_id', '=', $id)
+                    ->delete();
+                }
             }
 
         }

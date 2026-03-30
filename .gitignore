@@ -20,3 +20,4 @@ yarn-error.log
 .history
 composer.lock
 /.vs
+/app-development

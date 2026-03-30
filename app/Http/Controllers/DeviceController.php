@@ -85,11 +85,33 @@ class DeviceController extends Controller
         $sn = $request->input('sn');
         $empid = $request->input('empid');
         $dedo = $request->input('dedo');
-        $q['device_id'] = $sn;
-        $q['command'] = 'ENROLL_FP PIN=' . $empid . "\tFID=" . $dedo . "\tRETRY=3\tOVERWRITE=1";
-        $q['data'] = '{}';
-        $q['created_at'] = now();
-        DB::table('device_commands')->insert($q);
+        $replicar = $request->input('replicar');
+        $lectores = $request->input('lectores');
+        $ids[] = Array();
+        foreach($dedo as $fid){
+            unset($ids);
+            $q = [];
+            $q['device_id'] = $sn;
+            $q['command'] = 'ENROLL_FP PIN=' . env('PREFIJO_EMPRESA_CLIENTE') . $empid . "\tFID=" . $fid . "\tRETRY=3\tOVERWRITE=1";
+            $q['data'] = '{}';
+            $q['created_at'] = now();
+            DB::table('device_commands')->insert($q);
+
+            $id = DB::table('device_commands')->select('id')->orderBy('id', 'desc')->first();
+
+            if($replicar){
+                $q = [];
+                $q['command_id'] = $id->id;
+                $q['pin'] = env('PREFIJO_EMPRESA_CLIENTE') . $empid;
+                $q['fid'] = $fid;
+                foreach($lectores as $id){
+                    $ids[] = $id['id'];
+                }
+                $q['send_to'] = json_encode($ids);
+                $q['created_at'] = now();
+                DB::table('pending_replications')->insert($q);
+            }
+        }
         return response()->json(['message' => "Lector enviado para enrollar empleado"]);
     }
 
@@ -505,12 +527,13 @@ class DeviceController extends Controller
         $start = ($page - 1) * $perPage;
         $end = $start + $perPage;
         
-        $sql = "SELECT id,employee_id,timestamp,filename,size,sn
+        $sql = "SELECT id,employee_id,timestamp,filename,size,descripcion
                 FROM (
                   SELECT id,employee_id,timestamp,filename,size,sn,
                          ROW_NUMBER() OVER (ORDER BY timestamp DESC) AS rn
                   FROM attphoto
                 ) AS t
+                LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON t.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS
                 WHERE rn BETWEEN ? AND ? ORDER BY timestamp DESC";
         $rows = DB::select($sql, [$start + 1, $end]);
         $total = DB::table('attphoto')->count();
