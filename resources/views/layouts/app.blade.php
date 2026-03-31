@@ -1448,7 +1448,7 @@
 
             function createListItem(emp) {
                 const li = document.createElement("li");
-                const capName = `${emp.employee_id} - ${emp.name.charAt(0).toUpperCase()}${emp.name.slice(1)}`;
+                const capName = `${emp.employee_id} - ${emp.name}`;
 
                 li.innerHTML = `
                     <label class="checkbox-wrap">
@@ -1475,7 +1475,7 @@
 
                 allEmployeeLists.forEach(ul => {
                     empData.forEach(emp => {
-                        ul.appendChild(createListItem(emp));
+                        ul.appendChild(createListItem(emp).cloneNode(true));
                     });
                 });
             });
