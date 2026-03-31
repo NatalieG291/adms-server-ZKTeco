@@ -1134,7 +1134,7 @@
                     document.querySelector("[finger-index='" + (Number(finger)) + "']").style.backgroundColor = "#655cca";
                     document.querySelector("[finger-index='" + (Number(finger)) + "']").disabled = true;
                 })
-                document.getElementById('empid').value = currentEmployee;
+                document.getElementById('empid').value = currentEmployee.substring(1, 10);
             })
             .catch(err => {
                 console.error(err);
