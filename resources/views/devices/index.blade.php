@@ -188,7 +188,7 @@
                             <td class="d-none d-xl-table-cell">{{ $d->model }}</td>
                             <td class="d-none d-xl-table-cell">{{ $d->ip_address }}</td>
                             <td>{{ $d->transaction_count }}</td>
-                            <td>{{ $d->photo_count }}
+                            <td>{{ $d->photo_count }}</td>
                             <td>{{ $d->user_count }}</td>
                             <td>{{ $d->fp_count }}</td>
                             <td>{{ $d->face_count }}</td>
@@ -285,7 +285,7 @@
                             <label for="transfer" class="form-label">Tipo de transferencia</label>
                             <select class="form-select" id="transfer" onchange="if(document.getElementById('transfer').value == 1){document.getElementById('transferTime').disabled=true;document.getElementById('transtimes').disabled=true;}else{document.getElementById('transferTime').disabled=false;document.getElementById('transtimes').disabled=false;}">
                                 <option value="1">En tiempo real</option>
-                                <option valie="0">Sincronizar</option>
+                                <option value="0">Sincronizar</option>
                             </select>
                         </div>
                         <div class="col-6">
@@ -363,12 +363,11 @@
                             <div class="dropdown-quantity">(<span class="quantity"></span>)</div>
                         <i class="fa fa-chevron-down"></i>
 				    </div>
-                        <div class="dropdown-list" style="">
-                            <input type="search" placeholder="Buscar empleados" class="dropdown-search">
-                            <ul class="dropdown-list">
-                            </ul>
-                        </div>
-					</div>
+                    <div class="dropdown-list" style="">
+                        <input type="search" placeholder="Buscar empleados" class="dropdown-search">
+                        <ul class="dropdown-list">
+                        </ul>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
