@@ -168,11 +168,7 @@
                     <form class="hands" data-eqcss-0-0="" _has="">
                         <div class="row g-3 align-items-center">
                             <div class="col-3"></div>
-                            <div class="col-3">
-                                <label for="empid" class="col-form-label">ID Empleado</label>
-                                <input type="text" style="text-align: center;" class="form-control" id="empid" disabled>
-                            </div>
-                            <div class="col-3">
+                            <div class="col-6">
                                 <label for="empid" class="col-form-label">Enrolar desde</label>
                                 <select class="form-select devices-select-enroll" id="devices-select-Enroll" name="devices-select-Enroll[]" style="width: 100%">
                                     @foreach ($devices as $device)
