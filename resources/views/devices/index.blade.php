@@ -359,14 +359,19 @@
                     </div>
                     <div class="dropdown-container visually-hidden" id="employeeSelect">
                         <div class="dropdown-button noselect w-100">
-                            <div class="dropdown-label">Empleados</div>
-                            <div class="dropdown-quantity">(<span class="quantity"></span>)</div>
-                        <i class="fa fa-chevron-down"></i>
-				    </div>
-                    <div class="dropdown-list" style="">
-                        <input type="search" placeholder="Buscar empleados" class="dropdown-search">
-                        <ul class="dropdown-list">
-                        </ul>
+                            <div class="dropdown-label">
+                                Empleados
+                            </div>
+                            <div class="dropdown-quantity">
+                                (<span class="quantity"></span>)
+                            </div>
+                            <i class="fa fa-chevron-down"></i>
+                        </div>
+                        <div class="dropdown-list" style="">
+                            <input type="search" placeholder="Buscar empleados" class="dropdown-search">
+                            <ul class="dropdown-list">
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -377,7 +382,7 @@
         </div>
     </div>
 
-        <div class="modal fade" id="uploadData" tabindex="-1" aria-labelledby="uploadDataLabel" aria-hidden="true">
+    <div class="modal fade" id="uploadData" tabindex="-1" aria-labelledby="uploadDataLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -411,10 +416,14 @@
                     </div>
                     <div class="dropdown-container visually-hidden mb-3" id="employeeSelectUpload">
                         <div class="dropdown-button noselect w-100">
-                            <div class="dropdown-label">Empleados</div>
-                            <div class="dropdown-quantity">(<span class="quantity"></span>)</div>
-                        <i class="fa fa-chevron-down"></i>
-				    </div>
+                            <div class="dropdown-label">
+                                Empleados
+                            </div>
+                            <div class="dropdown-quantity">
+                                (<span class="quantity"></span>)
+                            </div>
+                            <i class="fa fa-chevron-down"></i>
+				        </div>
                         <div class="dropdown-list" style="">
                             <input type="search" placeholder="Buscar empleados" class="dropdown-search">
                             <ul class="dropdown-list">
@@ -482,7 +491,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="enrollModal" aria-labelledby="enrollModalLabel" aria-hidden="true">
+    <div class="modal fade" id="enrollModal" aria-labelledby="enrollModalLabel" aria-hidden="true" tab-index="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
