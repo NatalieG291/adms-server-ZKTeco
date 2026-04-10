@@ -232,12 +232,51 @@ class DeviceController extends Controller
     public function DeleteEmployee(Request $request){
         $sn = $request->input('sn');
         $employees = $request->input('empids');
-        foreach($employees as $pin){
-            $q['device_id'] = $sn;
-            $q['command'] = 'DATA DELETE USERINFO PIN='.$pin;
-            $q['data'] = '{}';
-            $q['created_at'] = now();
-            DB::table('device_commands')->insert($q);
+        $deleteDatabase = $request->input('deleteDatabase');
+        $devices = $request->input('devices');
+        if($deleteDatabase){
+            DB::table('employees')->whereIn('employee_id', $employees)->delete();
+            DB::table('fingerprints')->whereIn('pin', $employees)->delete();
+            DB::table('faces')->whereIn('pin', $employees)->delete();
+            DB::table('emp_photos')->whereIn('employee_id', $employees)->delete();
+        }
+        if($sn){
+            foreach($employees as $pin){
+                $q['device_id'] = $sn;
+                $q['command'] = 'DATA DELETE USERINFO PIN='.$pin;
+                $q['data'] = '{}';
+                $q['created_at'] = now();
+                DB::table('device_commands')->insert($q);
+            }
+        }
+        else {
+            foreach($devices as $device){
+                if($device['id'] == "all") {
+                    $device = $device['id'];
+                    continue;
+                }
+            }
+            if($device == "all") {
+                $devices = DB::table('devices')->pluck('id');
+                foreach($devices as $device) {
+                    $q['device_id'] = $device;
+                    $q['command'] = 'DATA DELETE USERINFO PIN='.$employees[0];
+                    $q['data'] = '{}';
+                    $q['created_at'] = now();
+                    DB::table('device_commands')->insert($q);
+                }
+            }
+            else{
+                foreach($devices as $device) {
+                    foreach($employees as $pin){
+                        $q['device_id'] = $device['id'];
+                        $q['command'] = 'DATA DELETE USERINFO PIN='.$employees[0];
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+                }
+            }
         }
         return response()->json(['message' => "Empleados enviados para eliminar"]);
     }
@@ -404,6 +443,8 @@ class DeviceController extends Controller
         $endDate = $request->get('end_date');
         $startTime = $request->get('start_time');
         $endTime = $request->get('end_time');
+        $employeeIds = $request->get('employeeid', []);
+        $deviceIds = $request->get('deviceid', []);
 
         $selectCols = "id, descripcion, employee_id, timestamp, 
             CASE 
@@ -448,6 +489,16 @@ class DeviceController extends Controller
                 $whereSql = 'WHERE CONVERT(time, timestamp) BETWEEN ? AND ?';
                 $bindings = [$startTime, $endTime];
             }
+        }
+        if (!empty($employeeIds)) {
+            $placeholders = implode(',', array_fill(0, count($employeeIds), '?'));
+            $whereSql .= ($whereSql ? ' AND ' : ' WHERE ') . "employee_id IN ($placeholders)";
+            $bindings = array_merge($bindings, $employeeIds);
+        }
+        if (!empty($deviceIds)) {
+            $placeholders = implode(',', array_fill(0, count($deviceIds), '?'));
+            $whereSql .= ($whereSql ? ' AND ' : ' WHERE ') . "SN IN(SELECT NO_SN FROM DEVICES WHERE id IN ($placeholders))";
+            $bindings = array_merge($bindings, $deviceIds);
         }
 
         if ($request->get('export')) {
@@ -506,6 +557,11 @@ class DeviceController extends Controller
         $sql = "SELECT id, descripcion, employee_id, timestamp, status1 FROM (SELECT $selectCols, ROW_NUMBER() OVER (ORDER BY id DESC) AS rn 
         FROM attendances a LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
 
+        // dd(DB::select($sql, array_merge($bindings, [$start + 1, $end])));
+        // DB::listen(function ($query) {
+        //     dump($query->sql);
+        //     dump($query->bindings);
+        // });
         $rows = DB::select($sql, array_merge($bindings, [$start + 1, $end]));
 
         $countSql = "SELECT COUNT(*) AS cnt FROM attendances " . ($whereSql ? ' ' . $whereSql : '');
@@ -517,7 +573,19 @@ class DeviceController extends Controller
             'query' => request()->query(),
         ]);
 
-        return view('devices.attendance', compact('attendances'));
+        $employees = DB::table('employees')
+            ->select('employee_id', 'name')
+            ->get();
+
+        $devices = DB::table('devices')
+            ->select('id', 'descripcion')
+            ->leftjoin('giro.supervisor_giro.lectores_adms',
+                DB::raw("devices.no_sn COLLATE SQL_Latin1_General_CP1_CI_AS"),
+                '=',
+                DB::raw("lectores_adms.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS")
+            )
+            ->get();
+        return view('devices.attendance', compact('attendances', 'employees', 'devices'));
     }
 
     public function attphoto()

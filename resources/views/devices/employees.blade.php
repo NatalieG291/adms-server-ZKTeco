@@ -37,8 +37,8 @@
                     @foreach ($employees as $d)
                         <tr>
                             <td>
-                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editEmployeeModal" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}', '{{ $d->total }}')">Editar</button>
-                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#DeleteEmployeeModal" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}, {{ $d->total }}')">Eliminar</button>
+                                <i class="bi bi-pencil-square text-primary" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#editEmployeeModal" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}', '{{ $d->total }}')"></i>
+                                <i class="bi bi-trash-fill text-danger" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#DeleteEmployeeModal" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}', '{{ $d->total }}'); OpenDeleteEmployeeKardexModal()"></i>
                             </td>
                             <td>{{ $d->employee_id }}</td>
                             <td>{{ $d->name }}</td>
@@ -219,6 +219,45 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" class="btn btn-primary" onclick="EnrollEmployeeKardex()" >Enrolar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" tabindex="-1" id="DeleteEmployeeModalKardex" aria-labelledby="DeleteEmployeeModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Eliminar empleado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-12">
+                            <p id="deleteEmployeeText">Modal body text goes here.</p>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-check-label fw-medium" for="devicesDelete">Eliminar en dispositivos</label>
+                            <select class="form-select devices-select" id="devicesDelete" name="devicesDelete[]" multiple="multiple" style="width: 100%">
+                                <option value="all">Todos los dispositivos</option>
+                                @foreach ($devices as $device)
+                                    <option value="{{ $device->id }}">{{ $device->descripcion }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="deleteFromDatabase">
+                                <label class="form-check-label" for="deleteFromDatabase" id="deleteFromDatabase">
+                                    Eliminar completamente de la base de datos (no se podrá recuperar)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="DeleteEmployeeKardex()">Eliminar</button>
                 </div>
             </div>
         </div>

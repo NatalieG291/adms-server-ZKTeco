@@ -12,8 +12,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" fetchpriority="high">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <script>
         function navActive() {
             const pathname = window.location.pathname;
@@ -306,9 +307,10 @@
   font-family: sans-serif;
   overflow: auto;
   border-radius: 5px;
-  -webkit-box-shadow: 0px 10px 30px -4px rgba(0, 0, 0, 0.15);
-  -moz-box-shadow: 0px 10px 30px -4px rgba(0, 0, 0, 0.15);
-  box-shadow: 0px 10px 30px -4px rgba(0, 0, 0, 0.15); }
+  /* -webkit-box-shadow: 0px 10px 30px -4px rgba(0, 0, 0, 0.15); */
+  /* -moz-box-shadow: 0px 10px 30px -4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0px 10px 30px -4px rgba(0, 0, 0, 0.15);  */
+}
 
 .dropdown-button {
   float: left;
@@ -599,7 +601,7 @@
 
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: 'Reiniciar dispositivo ' + currentSN + '?',
+                text: 'Reiniciar dispositivo ' + currentDeviceName + '?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '¡Sí, reiniciarlo!',
@@ -640,7 +642,7 @@
 
             Swal.fire ({
                 title: '¿Estás seguro?',
-                text: '¿Borrar datos de administrador en el dispositivo ' + currentSN + '? Esta acción no se puede deshacer.',
+                text: '¿Borrar datos de administrador en el dispositivo ' + currentDeviceName + '? Esta acción no se puede deshacer.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '¡Sí, borrarlo!',
@@ -680,7 +682,7 @@
 
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: '¿Borrar registro en el dispositivo ' + currentSN + '? Esta acción no se puede deshacer.',
+                text: '¿Borrar registro en el dispositivo ' + currentDeviceName + '? Esta acción no se puede deshacer.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '¡Sí, borrarlo!',
@@ -713,16 +715,20 @@
     </script>
     <script>
         let currentSN = null;
+        let currentDeviceName = null;
 
-        function setCurrentSN(sn) {
+        function setCurrentSN(sn, deviceName) {
             currentSN = sn;
+            currentDeviceName = deviceName;
         }
     </script>
     <script>
         let currentEmployee = null;
+        let currentEmployeeName = null;
 
         function setCurrentEmployee(empid,name,pri,pri_id,passwd,card,verify,fingerprints) {
             currentEmployee = empid;
+            currentEmployeeName = name;
             document.getElementById('employeeName').value = name;
             document.getElementById('employeePri').value = pri_id;
             document.getElementById('employeePasswd').value = passwd;
@@ -773,7 +779,7 @@
 
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: '¿Inscribir empleado ' + empid + ' con dedo ' + dedo + ' en el dispositivo ' + currentSN + '?',
+                text: '¿Inscribir empleado ' + empid + ' con dedo ' + dedo + ' en el dispositivo ' + currentDeviceName + '?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '¡Sí, inscribir!',
@@ -877,7 +883,7 @@
 
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: '¿Establecer configuración de foto a ' + config + ' en el dispositivo ' + currentSN + '?',
+                text: '¿Establecer configuración de foto a ' + config + ' en el dispositivo ' + currentDeviceName + '?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '¡Sí, configurarlo!',
@@ -915,10 +921,9 @@
 
             const minutes = document.getElementById('duplicateTime').value;
 
-            // if (!confirm('Set duplicate punch period to ' + minutes + ' minutes on device ' + currentSN + '?')) return;
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: '¿Establecer período de acceso duplicado a ' + minutes + ' minutos en el dispositivo ' + currentSN + '?',
+                text: '¿Establecer período de acceso duplicado a ' + minutes + ' minutos en el dispositivo ' + currentDeviceName + '?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '¡Sí, configurarlo!',
@@ -1007,7 +1012,7 @@
 
             Swal.fire({
                     title: '¿Estás seguro?',
-                    text: '¿Guardar la configuracion del dispositivo ' + currentSN + '?',
+                    text: '¿Guardar la configuracion del dispositivo ' + currentDeviceName + '?',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: '¡Sí, guardar!',
@@ -1040,8 +1045,107 @@
                 });
         }
 
+        function performEmployeeDeletionKardex(devices, deleteDatabase, employee) {
+            $("#loader-lu").addClass("is-active");
+            fetch("{{ route('devices.delete-employee') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ devices: devices, empids: employee, deleteDatabase: deleteDatabase })
+            })
+            .then(r => r.json())
+            .then(data => {
+                $("#loader-lu").removeClass("is-active");
+                Swal.fire(data.message || "Empleado enviado para eliminar", '', 'success');
+            })
+            .then(() => {
+                var deleteModal = document.getElementById('DeleteEmployeeModalKardex');
+                var modal = bootstrap.Modal.getInstance(deleteModal);
+                modal.hide();
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire('Error al enviar la solicitud de eliminacion', '', 'error');
+                $("#loader-lu").removeClass("is-active");
+            });
+        }
+
+        function DeleteEmployeeKardex() {
+            
+            if (!currentEmployee) {
+                Swal.fire('Ningún empleado seleccionado', '', 'error');
+                return;
+            }
+
+            const employee = [currentEmployee];
+            const deleteDatabase = document.getElementById('deleteFromDatabase').checked;
+            const devices = $('#devicesDelete').select2('data');
+
+            if((devices.length == 0)){
+                Swal.fire('Seleccione un lector', '', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: '¿Eliminar empleado ' + currentEmployee + ' del dispositivo(s) seleccionado(s)?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: '¡Sí, eliminar!',
+                cancelButtonText: 'No, cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if(deleteDatabase) {
+                        Swal.fire({
+                            title: '¿Estás realmente seguro?',
+                            text: 'Esto eliminará permanentemente el empleado seleccionado de la base de datos además del dispositivo. Esta acción no se puede deshacer.',
+                            icon: 'error',
+                            showCancelButton: true,
+                            confirmButtonText: '¡Sí, eliminar permanentemente!',
+                            cancelButtonText: 'No, cancelar'
+                        }).then((finalResult) => {
+                            if (finalResult.isConfirmed) {
+                                performEmployeeDeletionKardex(devices, deleteDatabase, employee);
+                            }
+                        });
+                    } else {
+                        performEmployeeDeletionKardex(devices, deleteDatabase);
+                    }
+
+                }
+            });
+        }
+
+        function performEmployeeDeletion(empIds, deleteDatabase) {
+            $("#loader-lu").addClass("is-active");
+            fetch("{{ route('devices.delete-employee') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ sn: currentSN, empids: empIds, deleteDatabase: deleteDatabase })
+            })
+            .then(r => r.json())
+            .then(data => {
+                $("#loader-lu").removeClass("is-active");
+                Swal.fire(data.message || "Empleados enviados para eliminar", '', 'success');
+            })
+            .then(() => {
+                CloseDeleteEmployeeModal();
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire('Error al enviar la solicitud de eliminacion', '', 'error');
+                $("#loader-lu").removeClass("is-active");
+            });
+        }
+
         function EmployeeDeleteData(){
             const listEmployees = document.querySelectorAll('.dropdown-list ul li');
+            const deleteDatabase = document.getElementById('deleteEmployees').checked;
             const checkedEmpIds = [];
             listEmployees.forEach((item) => {
                 const checkbox = item.querySelector('input[type="checkbox"]');
@@ -1055,35 +1159,29 @@
             }
             Swal.fire({
                     title: '¿Estás seguro?',
-                    text: '¿Eliminar empleados seleccionados del dispositivo ' + currentSN + '?',
+                    text: '¿Eliminar empleados seleccionados del dispositivo ' + currentDeviceName + '?',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: '¡Sí, eliminarlos!',
                     cancelButtonText: 'No, cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        $("#loader-lu").addClass("is-active");
-                        fetch("{{ route('devices.delete-employee') }}", {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({ sn: currentSN, empids: checkedEmpIds })
-                        })
-                        .then(r => r.json())
-                        .then(data => {
-                            $("#loader-lu").removeClass("is-active");
-                            Swal.fire(data.message || "Empleados enviados para eliminar", '', 'success');
-                        })
-                        .then(() => {
-                            CloseDeleteEmployeeModal();
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            Swal.fire('Error al enviar la solicitud de eliminacion', '', 'error');
-                            $("#loader-lu").removeClass("is-active");
-                        });
+                        if(deleteDatabase) {
+                            Swal.fire({
+                                title: '¿Estás realmente seguro?',
+                                text: 'Esto eliminará permanentemente los empleados seleccionados de la base de datos además del dispositivo. Esta acción no se puede deshacer.',
+                                icon: 'error',
+                                showCancelButton: true,
+                                confirmButtonText: '¡Sí, eliminar permanentemente!',
+                                cancelButtonText: 'No, cancelar'
+                            }).then((finalResult) => {
+                                if (finalResult.isConfirmed) {
+                                    performEmployeeDeletion(checkedEmpIds, deleteDatabase);
+                                }
+                            });
+                        } else {
+                            performEmployeeDeletion(checkedEmpIds, deleteDatabase);
+                        }
                     }
                 });
         }
@@ -1112,6 +1210,18 @@
             });
             $('#devices').val(null).trigger('change');
             $('#devices').val('all').trigger('change');
+        }
+
+        function OpenDeleteEmployeeKardexModal(){
+            document.getElementById('deleteEmployeeText').innerText = currentEmployee.substring(1, 10) + " - " + currentEmployeeName;
+
+            var modal = new bootstrap.Modal(document.getElementById('DeleteEmployeeModalKardex'), {});
+            modal.show();
+            $('#devicesDelete').select2({
+                dropdownParent: $('#DeleteEmployeeModalKardex .modal-body')
+            });
+            $('#devicesDelete').val(null).trigger('change');
+            $('#devicesDelete').val('all').trigger('change');
         }
 
         function OpenEnrollEmployeeModal() {
@@ -1345,7 +1455,7 @@
                 }
                 Swal.fire({
                     title: '¿Estás seguro?',
-                    text: '¿Descargar datos para empleados seleccionados del dispositivo ' + currentSN + '?',
+                    text: '¿Descargar datos para empleados seleccionados del dispositivo ' + currentDeviceName + '?',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: '¡Sí, descargarlo!',
@@ -1380,7 +1490,7 @@
             else {
                 Swal.fire({
                     title: '¿Estás seguro?',
-                    text: '¿Descargar datos para ' + (all ? 'todos los empleados' : 'empleados seleccionados') + ' del dispositivo ' + currentSN + '?',
+                    text: '¿Descargar datos para ' + (all ? 'todos los empleados' : 'empleados seleccionados') + ' del dispositivo ' + currentDeviceName + '?',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: '¡Sí, descargarlo!',
@@ -1480,6 +1590,10 @@
                     });
                 });
             });
+        });
+        $(document).ready(function() {
+            $('#employeeid').select2();
+            $('#device_id').select2();
         });
     </script>
 
@@ -1699,7 +1813,7 @@
                 }
                 Swal.fire({
                     title: '¿Estás seguro?',
-                    text: '¿Subir datos para empleados seleccionados al dispositivo ' + currentSN + '?',
+                    text: '¿Subir datos para empleados seleccionados al dispositivo ' + currentDeviceName + '?',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: '¡Sí, subirlo!',
@@ -1734,7 +1848,7 @@
             else {
                 Swal.fire({
                     title: '¿Estás seguro?',
-                    text: '¿Subir datos para ' + (all ? 'todos los empleados' : 'empleados seleccionados') + ' al dispositivo ' + currentSN + '?',
+                    text: '¿Subir datos para ' + (all ? 'todos los empleados' : 'empleados seleccionados') + ' al dispositivo ' + currentDeviceName + '?',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: '¡Sí, subirlo!',
@@ -1827,7 +1941,7 @@
 
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: '¿Borrar todos los datos en el dispositivo ' + currentSN + '? Esta acción no se puede deshacer.',
+                text: '¿Borrar todos los datos en el dispositivo ' + currentDeviceName + '? Esta acción no se puede deshacer.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: '¡Sí, borrarlo!',

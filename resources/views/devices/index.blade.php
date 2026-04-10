@@ -153,11 +153,11 @@
                 </thead>
                 <tbody>
                     @foreach ($log as $d)
-                        <tr onclick="document.getElementById('radioNoLabel{{ $d->id }}').checked = true; setCurrentSN('{{ $d->id }}')">
+                        <tr onclick="document.getElementById('radioNoLabel{{ $d->id }}').checked = true; setCurrentSN('{{ $d->id }}', '{{ $d->descripcion }}')" style="cursor: pointer;">
                             @auth
                             <td>
                                 <div>
-                                    <input class="form-check-input" type="radio" name="selectedDevice" id="radioNoLabel{{ $d->id }}" value="{{ $d->id }}" aria-label="..." onchange="setCurrentSN('{{ $d->id }}')">
+                                    <input class="form-check-input" type="radio" name="selectedDevice" id="radioNoLabel{{ $d->id }}" value="{{ $d->id }}" aria-label="..." onchange="setCurrentSN('{{ $d->id }}', '{{ $d->descripcion }}')">
                                 </div>
                             </td>
                             @endauth
@@ -320,11 +320,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="dropdown-container" id="employeeSelectDelete">
+                    <div class="dropdown-container border-bottom" id="employeeSelectDelete">
                         <div class="dropdown-button noselect w-100">
                             <div class="dropdown-label">Empleados</div>
                             <div class="dropdown-quantity">(<span class="quantity"></span>)</div>
-                        <i class="fa fa-chevron-down"></i>
 				    </div>
                         <div class="dropdown-list" style="">
                             <input type="search" placeholder="Buscar empleados" class="dropdown-search">
@@ -332,6 +331,10 @@
                             </ul>
                         </div>
 					</div>
+                    <div class="mb-3 mt-3 ms-3 form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="deleteEmployees" id="deleteEmployees">
+                        <label class="form-check-label" for="deleteEmployees">Eliminar empleados de la base de datos</label>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -365,7 +368,6 @@
                             <div class="dropdown-quantity">
                                 (<span class="quantity"></span>)
                             </div>
-                            <i class="fa fa-chevron-down"></i>
                         </div>
                         <div class="dropdown-list" style="">
                             <input type="search" placeholder="Buscar empleados" class="dropdown-search">
@@ -422,7 +424,6 @@
                             <div class="dropdown-quantity">
                                 (<span class="quantity"></span>)
                             </div>
-                            <i class="fa fa-chevron-down"></i>
 				        </div>
                         <div class="dropdown-list" style="">
                             <input type="search" placeholder="Buscar empleados" class="dropdown-search">
