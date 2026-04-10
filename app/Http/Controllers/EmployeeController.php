@@ -147,6 +147,7 @@ class EmployeeController extends Controller
     {
         $employeeId = $request->input('empid');
         $name = $request->input('name');
+        if($name === null) $name = '';
         $pri = $request->input('pri');
         $passwd = $request->input('passwd');
         $card = $request->input('card');
