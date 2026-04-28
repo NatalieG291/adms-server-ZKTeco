@@ -1146,7 +1146,7 @@
                             }
                         });
                     } else {
-                        performEmployeeDeletionKardex(devices, deleteDatabase);
+                        performEmployeeDeletionKardex(devices, deleteDatabase, employee);
                     }
 
                 }

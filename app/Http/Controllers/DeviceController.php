@@ -49,6 +49,13 @@ class DeviceController extends Controller
 
     public function RestartDevice(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Restart Device',
+            'description' => 'Device SN: ' . $request->input('sn'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $sn = $request->input('sn');
         $q['device_id'] = $sn;
         $q['command'] = 'REBOOT';
@@ -60,6 +67,13 @@ class DeviceController extends Controller
 
     public function ClearAdmin(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Clear Admin',
+            'description' => 'Device SN: ' . $request->input('sn'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $sn = $request->input('sn');
         $q['device_id'] = $sn;
         $q['command'] = 'CLEAR ADMIN';
@@ -71,6 +85,13 @@ class DeviceController extends Controller
 
     public function ClearLog(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Clear Log',
+            'description' => 'Device SN: ' . $request->input('sn'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $sn = $request->input('sn');
         $q['device_id'] = $sn;
         $q['command'] = 'CLEAR LOG';
@@ -82,6 +103,13 @@ class DeviceController extends Controller
 
     public function EnrollEmployee(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Enroll Employee',
+            'description' => 'Device SN: ' . $request->input('sn') . ', Employee ID: ' . $request->input('empid'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $sn = $request->input('sn');
         $empid = $request->input('empid');
         $dedo = $request->input('dedo');
@@ -117,6 +145,13 @@ class DeviceController extends Controller
 
     public function SetPhotoConfig(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Set Photo Config',
+            'description' => 'Device SN: ' . $request->input('sn') . ', Config: ' . $request->input('config'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $sn = $request->input('sn');
         $option = $request->input('config');
         $q['device_id'] = $sn;
@@ -129,6 +164,13 @@ class DeviceController extends Controller
 
     public function SetDuplicateTime(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Set Duplicate Time',
+            'description' => 'Device SN: ' . $request->input('sn') . ', Minutes: ' . $request->input('minutes'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $sn = $request->input('sn');
         $minutes = $request->input('minutes');
         $q['device_id'] = $sn;
@@ -140,6 +182,13 @@ class DeviceController extends Controller
     }
 
     public function SaveDeviceConfig(Request $request){
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Save Device Config',
+            'description' => 'Device SN: ' . $request->input('sn') . ', Name: ' . $request->input('name') . ', Timezone: ' . $request->input('timezone') . ', Delay: ' . $request->input('delay') . ', RealTime: ' . $request->input('realtime') . ', TransInterval: ' . $request->input('transfertime') . ', TransTimes: ' . $request->input('transtimes'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $id = $request->input('sn');
         $name = $request->input('name');
         $timezone = $request->input('timezone');
@@ -207,6 +256,13 @@ class DeviceController extends Controller
 
     public function Download(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Download Employee Data',
+            'description' => 'Device SN: ' . $request->input('sn') . ', All: ' . ($request->input('all') ? 'Yes' : 'No') . ', Employee IDs: ' . implode(',', $request->input('empids', [])),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $sn = $request->input('sn');
         $all = $request->input('all');
         $many = $request->input('empids');
@@ -230,6 +286,13 @@ class DeviceController extends Controller
     }
 
     public function DeleteEmployee(Request $request){
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Delete Employee',
+            'description' => 'Device SN: ' . $request->input('sn') . ', Employee IDs: ' . implode(',', $request->input('empids', [])) . ', Delete from Database: ' . ($request->input('deleteDatabase') ? 'Yes' : 'No') . ', Devices: ' . implode(',', array_map(function($d) { return $d['id']; }, $request->input('devices', []))),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $sn = $request->input('sn');
         $employees = $request->input('empids');
         $deleteDatabase = $request->input('deleteDatabase');
@@ -283,6 +346,13 @@ class DeviceController extends Controller
 
     public function Upload(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Upload Employee Data',
+            'description' => 'Device SN: ' . $request->input('sn') . ', All: ' . ($request->input('all') ? 'Yes' : 'No') . ', Employee IDs: ' . implode(',', $request->input('empids', [])) . ', Include Fingerprints: ' . ($request->input('fp') ? 'Yes' : 'No') . ', Include Faces: ' . ($request->input('face') ? 'Yes' : 'No') . ', Include Photos: ' . ($request->input('photo') ? 'Yes' : 'No'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $sn = $request->input('sn');
         $all = $request->input('all');
         $many = $request->input('empids');
@@ -381,6 +451,13 @@ class DeviceController extends Controller
 
     public function deleteData (Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Clear Device Data',
+            'description' => 'Device SN: ' . $request->input('sn'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+        
         $sn = $request->input('sn');
         $q['device_id'] = $sn;
         $q['command'] = 'CLEAR DATA';
