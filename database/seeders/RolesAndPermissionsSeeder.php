@@ -29,6 +29,9 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'device-upload-data', 'description' => 'Subir datos de usuarios']);
         Permission::create(['name' => 'device-delete-employee', 'description' => 'Eliminar empleados del lector']);
         Permission::create(['name' => 'device-change-config', 'description' => 'Cambiar configuracion del lector']);
+        Permission::create(['name' => 'view-attendance', 'description' => 'Ver asistencia']);
+        Permission::create(['name' => 'view-attendance-photos', 'description' => 'Ver fotos de asistencia']);
+        Permission::create(['name' => 'view-employees', 'description' => 'Ver empleados']);
 
         $admin = Role::create(['name' => 'admin']);
         $admin->givePermissionTo(Permission::all());

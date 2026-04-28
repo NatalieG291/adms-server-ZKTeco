@@ -1,3 +1,10 @@
+@if(! auth()->user()->hasRole('admin'))
+    @php
+        auth()->logout();
+        
+        header('Location: ' . route('login'));
+    @endphp
+@endif
 @extends('layouts.app')
 
 @section('content')
