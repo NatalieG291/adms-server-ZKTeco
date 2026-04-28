@@ -508,7 +508,7 @@
     </style>
 </head>
 <body onload="navActive()">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top pb-0">
         <div class="container">
             <a class="navbar-brand" href="#">
                 <img src="storage/logo_ossc.png" height="25vw" width="auto" class="d-inline-block align-text-top">
@@ -518,12 +518,15 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="nav nav-tabs">
+                    @auth
                     <li class="nav-item">
                         <a class="nav-link" id="devicesnav" href="{{ route('devices.index') }}">Dispositivo</a>
                     </li>
+                    @can('view-attendance')
                     <li class="nav-item">
                         <a class="nav-link" id="attendance" href="{{ route('devices.Attendance') }}">Asistencia</a>
                     </li>
+                    @endcan
                     @role('admin')
                     <li class="nav-item">
                         <a class="nav-link" id="devices-log" href="{{ route('devices.DeviceLog') }}">Registro del Dispositivo</a>
@@ -532,22 +535,54 @@
                         <a class="nav-link" id="finger-log" href="{{ route('devices.FingerLog') }}">Registro de Huella</a>
                     </li>
                     @endrole
+                    @can('view-attendance-photos')
                     <li class="nav-item">
                         <a class="nav-link" id="attphoto" href="{{ route('devices.AttPhoto') }}">Foto de Asistencia</a>
                     </li>
+                    @endcan
+                    @can('view-employees')
                     <li class="nav-item">
                         <a class="nav-link" id="employees" href="{{ route('employees.index') }}">Empleados</a>
                     </li>
+                    @endcan
                     @role('admin')
                     <li class="nav-item">
                         <a class="nav-link" id="users" href="{{ route('users.index') }}">Usuarios</a>
                     </li>
                     @endrole
+                    @endauth
                 </ul>
             </div>
-            <span class="navbar-text d-none d-lg-block">
-                {{ now() }}
-            </span>
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item">
+                    <span class="navbar-text d-none d-lg-block p-0">
+                        <strong>
+                        @auth
+                            {{ Auth::user()->name }}
+                        @endauth
+                        </strong>
+                    </span>
+                    <span class="navbar-text d-none d-lg-block p-0">
+                        <span id="realtime-clock"></span>
+                    </span>
+                    <script>
+                        function updateRealtimeClock() {
+                            const now = new Date();
+                            const formatted = now.toLocaleString('es-ES', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                            });
+                            document.getElementById('realtime-clock').textContent = formatted;
+                        }
+                        updateRealtimeClock();
+                        setInterval(updateRealtimeClock, 1000);
+                    </script>
+                </div>
+            </div>
 
             <ul class="navbar-nav ms-3">
                 @auth

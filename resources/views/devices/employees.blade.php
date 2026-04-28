@@ -1,3 +1,11 @@
+@if(! auth()->user()->can('view-employees'))
+    @php
+        auth()->logout();
+        
+        header('Location: ' . route('login'));
+    @endphp
+@endif
+
 @extends('layouts.app')
 @section('content')
 <?php

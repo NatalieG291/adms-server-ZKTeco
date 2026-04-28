@@ -131,7 +131,9 @@
                 <thead>
                     <tr>
                         @auth
+                        @canany(['device-reboot', 'device-clear-admin', 'device-clear-data', 'device-clear-log', 'device-capture-setting', 'device-punch-period', 'device-remote-enroll', 'device-download-data', 'device-upload-data', 'device-delete-employee', 'device-change-config'])
                         <th scope="col"></th>
+                        @endcan
                         @endauth
                         <th scope="col">Estado</th>
                         {{-- <th scope="col">No</th> --}}
@@ -155,11 +157,13 @@
                     @foreach ($log as $d)
                         <tr onclick="document.getElementById('radioNoLabel{{ $d->id }}').checked = true; setCurrentSN('{{ $d->id }}', '{{ $d->descripcion }}')" style="cursor: pointer;">
                             @auth
+                            @canany(['device-reboot', 'device-clear-admin', 'device-clear-data', 'device-clear-log', 'device-capture-setting', 'device-punch-period', 'device-remote-enroll', 'device-download-data', 'device-upload-data', 'device-delete-employee', 'device-change-config'])
                             <td>
                                 <div>
                                     <input class="form-check-input" type="radio" name="selectedDevice" id="radioNoLabel{{ $d->id }}" value="{{ $d->id }}" aria-label="..." onchange="setCurrentSN('{{ $d->id }}', '{{ $d->descripcion }}')">
                                 </div>
                             </td>
+                            @endcan
                             @endauth
                             <td class="align-middle">
                                 @switch(strtolower($d->state ?? ''))

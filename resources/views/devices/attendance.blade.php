@@ -1,3 +1,10 @@
+@if(! auth()->user()->can('view-attendance'))
+    @php
+        auth()->logout();
+        
+        header('Location: ' . route('login'));
+    @endphp
+@endif
 @extends('layouts.app')  {{-- Asumsikan Anda memiliki layout utama --}}
 
 @section('content')

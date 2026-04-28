@@ -1,3 +1,11 @@
+@if(! auth()->user()->can('view-attendance-photos'))
+    @php
+        auth()->logout();
+        
+        header('Location: ' . route('login'));
+    @endphp
+@endif
+
 @extends('layouts.app')  {{-- Asumsikan Anda memiliki layout utama --}}
 @section('content')
 <div class="container">
