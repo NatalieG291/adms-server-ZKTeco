@@ -105,6 +105,13 @@ class EmployeeController extends Controller
 
     public function UploadPhoto(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Upload Employee Photo',
+            'description' => 'Employee ID: ' . $request->input('employee_id'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
+
         $employeeId = $request->input('employee_id');
         $base64 = $request->input('base64');
         $size = $request->input('size');
@@ -145,6 +152,12 @@ class EmployeeController extends Controller
 
     public function EditEmployeeData(Request $request)
     {
+        $auditData = [
+            'user_id' => auth()->check() ? auth()->id() : null,
+            'action' => 'Edit Employee Data',
+            'description' => 'Employee ID: ' . $request->input('empid') . 'name: ' . $request->input('name') . 'pri: ' . $request->input('pri') . 'card: ' . $request->input('card') . 'verify: ' . $request->input('verify') . 'passwd: ' . $request->input('passwd'),
+        ];
+        DB::table('audit_logs')->insert($auditData);
         $employeeId = $request->input('empid');
         $name = $request->input('name');
         if($name === null) $name = '';
