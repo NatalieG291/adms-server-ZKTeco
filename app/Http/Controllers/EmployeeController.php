@@ -109,6 +109,7 @@ class EmployeeController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Upload Employee Photo',
             'description' => 'Employee ID: ' . $request->input('employee_id'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -156,6 +157,7 @@ class EmployeeController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Edit Employee Data',
             'description' => 'Employee ID: ' . $request->input('empid') . 'name: ' . $request->input('name') . 'pri: ' . $request->input('pri') . 'card: ' . $request->input('card') . 'verify: ' . $request->input('verify') . 'passwd: ' . $request->input('passwd'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
         $employeeId = $request->input('empid');

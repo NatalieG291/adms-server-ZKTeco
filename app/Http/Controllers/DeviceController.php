@@ -53,6 +53,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Restart Device',
             'description' => 'Device SN: ' . $request->input('sn'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -71,6 +72,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Clear Admin',
             'description' => 'Device SN: ' . $request->input('sn'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -89,6 +91,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Clear Log',
             'description' => 'Device SN: ' . $request->input('sn'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -107,6 +110,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Enroll Employee',
             'description' => 'Device SN: ' . $request->input('sn') . ', Employee ID: ' . $request->input('empid'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -149,6 +153,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Set Photo Config',
             'description' => 'Device SN: ' . $request->input('sn') . ', Config: ' . $request->input('config'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -168,6 +173,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Set Duplicate Time',
             'description' => 'Device SN: ' . $request->input('sn') . ', Minutes: ' . $request->input('minutes'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -186,6 +192,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Save Device Config',
             'description' => 'Device SN: ' . $request->input('sn') . ', Name: ' . $request->input('name') . ', Timezone: ' . $request->input('timezone') . ', Delay: ' . $request->input('delay') . ', RealTime: ' . $request->input('realtime') . ', TransInterval: ' . $request->input('transfertime') . ', TransTimes: ' . $request->input('transtimes'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -260,6 +267,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Download Employee Data',
             'description' => 'Device SN: ' . $request->input('sn') . ', All: ' . ($request->input('all') ? 'Yes' : 'No') . ', Employee IDs: ' . implode(',', $request->input('empids', [])),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -290,6 +298,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Delete Employee',
             'description' => 'Device SN: ' . $request->input('sn') . ', Employee IDs: ' . implode(',', $request->input('empids', [])) . ', Delete from Database: ' . ($request->input('deleteDatabase') ? 'Yes' : 'No') . ', Devices: ' . implode(',', array_map(function($d) { return $d['id']; }, $request->input('devices', []))),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -350,6 +359,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Upload Employee Data',
             'description' => 'Device SN: ' . $request->input('sn') . ', All: ' . ($request->input('all') ? 'Yes' : 'No') . ', Employee IDs: ' . implode(',', $request->input('empids', [])) . ', Include Fingerprints: ' . ($request->input('fp') ? 'Yes' : 'No') . ', Include Faces: ' . ($request->input('face') ? 'Yes' : 'No') . ', Include Photos: ' . ($request->input('photo') ? 'Yes' : 'No'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
@@ -455,6 +465,7 @@ class DeviceController extends Controller
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Clear Device Data',
             'description' => 'Device SN: ' . $request->input('sn'),
+            'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
         
