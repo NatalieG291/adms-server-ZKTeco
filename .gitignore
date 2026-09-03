@@ -18,6 +18,5 @@ yarn-error.log
 /.idea
 /.vscode
 .history
-composer.lock
 /.vs
 /app-development
