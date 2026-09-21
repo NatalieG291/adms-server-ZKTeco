@@ -83,7 +83,14 @@
                         </div>
                         <div class="col-md-9">
                             <div class="row g-3 align-items-center">
-                                <div class="col-12">
+                                <div class="col-4">
+                                    <label for="empid" class="form-label">Clave</label>
+                                    <div class="input-group">
+                                        <button class="btn btn-outline-secondary" type="button" id="basic-addon2" onclick="document.getElementById('empid').disabled = false;"><i class="bi bi-pencil"></i></button>
+                                        <input id="empid" type="text" class="form-control" aria-label="empid" aria-describedby="basic-addon2" disabled>
+                                    </div>
+                                </div>
+                                <div class="col-8">
                                     <label for="employeeName" class="form-label">Nombre</label>
                                     <input type="text" class="form-control" id="employeeName" name="name">
                                 </div>

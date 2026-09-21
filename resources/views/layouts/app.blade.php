@@ -764,6 +764,7 @@
         function setCurrentEmployee(empid,name,pri,pri_id,passwd,card,verify,fingerprints) {
             currentEmployee = empid;
             currentEmployeeName = name;
+            document.getElementById('empid').value = empid;
             document.getElementById('employeeName').value = name;
             document.getElementById('employeePri').value = pri_id;
             document.getElementById('employeePasswd').value = passwd;
@@ -994,6 +995,7 @@
                 return;
             }
 
+            const empid = document.getElementById('empid').value;
             const name = document.getElementById('employeeName').value;
             const pri = document.getElementById('employeePri').value;
             const passwd = document.getElementById('employeePasswd').value;
@@ -1011,23 +1013,57 @@
                 cancelButtonText: 'No, cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch("{{ route('employee.EditEmployeeData') }}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({ empid: currentEmployee, name: name, pri: pri, passwd: passwd, card: card, verify: verify, send: send, devices: devices })
-                    })
-                    .then(r => r.json())
-                    .then(data => Swal.fire(data.message || "Solicitud de edición de empleado enviada", '', 'success'))
-                    .then(() => {
-                        location.reload();
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        Swal.fire('Error al enviar la solicitud de edición de empleado', '', 'error');
-                    });
+
+                    if(currentEmployee != empid){
+
+                        Swal.fire({
+                            title: 'Cambio de clave de empleado',
+                            text: 'Se edito la clave del empleado, esto eliminara la clave anterior del empleado en todos los lectores, debera enviar al empleado con la nueva clave de manera manual desde la seccion de Dispositivos, ¿Desea continuar?',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: '¡Sí, continuar!',
+                            cancelButtonText: 'No, cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+
+                                fetch("{{ route('employee.EditEmployeeData') }}", {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({ newid: empid,empid: currentEmployee, name: name, pri: pri, passwd: passwd, card: card, verify: verify, send: send, devices: devices })
+                                })
+                                .then(r => r.json())
+                                .then(data => Swal.fire(data.message || "Solicitud de edición de empleado enviada", '', 'success'))
+                                .then(() => {
+                                    location.reload();
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                    Swal.fire('Error al enviar la solicitud de edición de empleado', '', 'error');
+                                });
+                            }
+                        });
+                    } else {
+                        fetch("{{ route('employee.EditEmployeeData') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ empid: currentEmployee, name: name, pri: pri, passwd: passwd, card: card, verify: verify, send: send, devices: devices })
+                        })
+                        .then(r => r.json())
+                        .then(data => Swal.fire(data.message || "Solicitud de edición de empleado enviada", '', 'success'))
+                        .then(() => {
+                            location.reload();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Swal.fire('Error al enviar la solicitud de edición de empleado', '', 'error');
+                        });
+                    }
                 }
             });
         }

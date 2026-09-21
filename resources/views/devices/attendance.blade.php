@@ -66,7 +66,8 @@
                 <tr>
                     <th class="d-none d-xl-table-cell">Lector</th>
                     <th>Clave de empleado</th>
-                    <th>Hora</th>
+                    <th>Nombre de empleado</th>
+                    <th>Fecha y Hora</th>
                     <th>Metodo checada</th>
                     
                 </tr>
@@ -76,6 +77,7 @@
                     <tr>
                         <td class="d-none d-xl-table-cell">{{ $attendance->descripcion }}</td>
                         <td>{{ $attendance->employee_id }}</td>
+                        <td>{{ $attendance->name }}</td>
                         <td>{{ $attendance->timestamp }}</td>
                         <td>{{ $attendance->status1 }}</td>
 
