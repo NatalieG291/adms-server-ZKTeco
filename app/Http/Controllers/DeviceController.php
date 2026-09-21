@@ -534,7 +534,7 @@ class DeviceController extends Controller
         $employeeIds = $request->get('employeeid', []);
         $deviceIds = $request->get('deviceid', []);
 
-        $selectCols = "id, descripcion, employee_id, timestamp, 
+        $selectCols = "a.id, descripcion, e.employee_id, e.name, a.timestamp, 
             CASE 
                 WHEN status1 = 1 THEN 'Huella' 
                 WHEN status1 = 3 THEN 'Contraseña'
@@ -580,7 +580,7 @@ class DeviceController extends Controller
         }
         if (!empty($employeeIds)) {
             $placeholders = implode(',', array_fill(0, count($employeeIds), '?'));
-            $whereSql .= ($whereSql ? ' AND ' : ' WHERE ') . "employee_id IN ($placeholders)";
+            $whereSql .= ($whereSql ? ' AND ' : ' WHERE ') . "a.employee_id IN ($placeholders)";
             $bindings = array_merge($bindings, $employeeIds);
         }
         if (!empty($deviceIds)) {
@@ -590,7 +590,7 @@ class DeviceController extends Controller
         }
 
         if ($request->get('export')) {
-            $sqlExport = "SELECT l.descripcion, employee_id, timestamp,
+            $sqlExport = "SELECT l.descripcion, e.employee_id, e.name, a.timestamp,
             CASE 
                 WHEN status1 = 1 THEN 'Huella' 
                 WHEN status1 = 3 THEN 'Contraseña'
@@ -612,7 +612,7 @@ class DeviceController extends Controller
                 WHEN status1 = 19 THEN 'Rostro, huella y tarjeta'
                 WHEN status1 = 20 THEN 'Rostro, huella y contraseña'
                 ELSE CAST(STATUS1 AS VARCHAR) END AS status1 
-            FROM attendances a LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . " ORDER BY id DESC";
+            FROM attendances a INNER JOIN employees e ON a.employee_id = e.employee_id LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . " ORDER BY a.id DESC";
             $rows = DB::select($sqlExport, $bindings);
             $filename = 'attendances_' . now()->format('Ymd_His') . '.csv';
             $headers = [
@@ -622,12 +622,13 @@ class DeviceController extends Controller
 
             $callback = function() use ($rows) {
                 $out = fopen('php://output', 'w');
-                fputcsv($out, ['lector', 'Clave Empleado', 'Fecha y hora', 'Metodo checada']);
+                fputcsv($out, ['lector', 'Clave Empleado', 'Nombre de empleado', 'Fecha y hora', 'Metodo checada']);
                 foreach ($rows as $r) {
                     $ts = isset($r->timestamp) ? Carbon::parse($r->timestamp)->format('Y-m-d H:i:s') : '';
                     fputcsv($out, [
                         $r->descripcion,
                         $r->employee_id,
+                        $r->name,
                         $ts,
                         $r->status1,
                     ]);
@@ -642,8 +643,8 @@ class DeviceController extends Controller
         $start = ($page - 1) * $perPage;
         $end = $start + $perPage;
 
-        $sql = "SELECT id, descripcion, employee_id, timestamp, status1 FROM (SELECT $selectCols, ROW_NUMBER() OVER (ORDER BY id DESC) AS rn 
-        FROM attendances a LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+        $sql = "SELECT id, descripcion, employee_id, name, timestamp, status1 FROM (SELECT $selectCols, ROW_NUMBER() OVER (ORDER BY a.id DESC) AS rn 
+        FROM attendances a INNER JOIN employees e ON a.employee_id = e.employee_id LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
 
         // dd(DB::select($sql, array_merge($bindings, [$start + 1, $end])));
         // DB::listen(function ($query) {
@@ -652,7 +653,7 @@ class DeviceController extends Controller
         // });
         $rows = DB::select($sql, array_merge($bindings, [$start + 1, $end]));
 
-        $countSql = "SELECT COUNT(*) AS cnt FROM attendances " . ($whereSql ? ' ' . $whereSql : '');
+        $countSql = "SELECT COUNT(*) AS cnt FROM attendances a " . ($whereSql ? ' ' . $whereSql : '');
         $countRow = DB::selectOne($countSql, $bindings);
         $total = $countRow ? (int) $countRow->cnt : 0;
 
@@ -683,7 +684,9 @@ class DeviceController extends Controller
         $start = ($page - 1) * $perPage;
         $end = $start + $perPage;
         
-        $sql = "SELECT id,employee_id,timestamp,filename,size,descripcion
+        $sql = "SELECT id,
+                CASE WHEN ISNULL(employee_id, '') = '' THEN 'Acceso incorrecto' ELSE employee_id END AS employee_id,
+                timestamp, filename, size, descripcion
                 FROM (
                   SELECT id,employee_id,timestamp,filename,size,sn,
                          ROW_NUMBER() OVER (ORDER BY timestamp DESC) AS rn

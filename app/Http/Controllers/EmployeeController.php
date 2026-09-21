@@ -160,6 +160,7 @@ class EmployeeController extends Controller
             'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
+        $newid = $request->input('newid');
         $employeeId = $request->input('empid');
         $name = $request->input('name');
         if($name === null) $name = '';
@@ -169,6 +170,53 @@ class EmployeeController extends Controller
         $verify = $request->input('verify');
         $send = $request->input('send');
         $devices = $request->input('devices');
+
+        if($newid && $newid !== $employeeId) {
+            if(DB::table('employees')->where('employee_id', $newid)->exists()) {
+                return response()->json(['message' => 'El nuevo ID de empleado ya existe, favor de validar'], 400);
+            }
+
+            $oldPhotoPath = storage_path('app/public/userpic/' . $employeeId .'.jpg');
+            $newPhotoPath = storage_path('app/public/userpic/' . $newid .'.jpg');
+            if (file_exists($oldPhotoPath)) {
+                rename($oldPhotoPath, $newPhotoPath);
+            }
+
+            DB::table('employees')
+                ->where('employee_id', $employeeId)
+                ->update(['employee_id' => $newid]);
+
+            DB::table('fingerprints')
+                ->where('pin', $employeeId)
+                ->update(['pin' => $newid]);
+
+            DB::table('faces')
+                ->where('pin', $employeeId)
+                ->update(['pin' => $newid]);
+
+            DB::table('emp_photos')
+                ->where('employee_id', $employeeId)
+                ->update(['employee_id' => $newid]);
+
+            DB::table('attendances')
+                ->where('employee_id', $employeeId)
+                ->update(['employee_id' => $newid]);
+
+            DB::connection('giro')->table('Supervisor_giro.BitacoraRegistros')
+                ->where('CLAVE', $employeeId)
+                ->update(['CLAVE' => $newid]);
+
+            $devicesToUpdate = DB::table('devices')->select('id')->pluck('id');
+            foreach($devicesToUpdate as $deviceId) {
+                DB::table('device_commands')
+                    ->insert([
+                        'device_id' => $deviceId,
+                        'command' => "DATA DELETE USERINFO\tPIN=$employeeId",
+                        'data' => '{}',
+                        'created_at' => now(),
+                    ]);
+            }
+        }
 
         $var = DB::table('employees')
             ->where('employee_id', $employeeId)
@@ -181,7 +229,7 @@ class EmployeeController extends Controller
                 'updated_at' => now(),
             ]);
 
-        if($send) {
+        if($send && ($employeeId == $newid || !$newid)) {
             if($devices == 'all') {
                 $devicesToUpdate = DB::table('devices')->select('id')->pluck('id');
                 foreach($devicesToUpdate as $deviceId) {
