@@ -612,7 +612,7 @@ class DeviceController extends Controller
                 WHEN status1 = 19 THEN 'Rostro, huella y tarjeta'
                 WHEN status1 = 20 THEN 'Rostro, huella y contraseña'
                 ELSE CAST(STATUS1 AS VARCHAR) END AS status1 
-            FROM attendances a INNER JOIN employees e ON a.employee_id = e.employee_id LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . " ORDER BY a.id DESC";
+            FROM attendances a INNER JOIN employees e ON CAST(a.employee_id AS NVARCHAR) = e.employee_id LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . " ORDER BY a.id DESC";
             $rows = DB::select($sqlExport, $bindings);
             $filename = 'attendances_' . now()->format('Ymd_His') . '.csv';
             $headers = [
@@ -644,7 +644,7 @@ class DeviceController extends Controller
         $end = $start + $perPage;
 
         $sql = "SELECT id, descripcion, employee_id, name, timestamp, status1 FROM (SELECT $selectCols, ROW_NUMBER() OVER (ORDER BY a.id DESC) AS rn 
-        FROM attendances a INNER JOIN employees e ON a.employee_id = e.employee_id LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+        FROM attendances a INNER JOIN employees e ON CAST(a.employee_id AS NVARCHAR) = e.employee_id LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
 
         // dd(DB::select($sql, array_merge($bindings, [$start + 1, $end])));
         // DB::listen(function ($query) {
