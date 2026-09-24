@@ -283,6 +283,7 @@
             'enroll' => route('devices.enroll'),
             'deleteEmployee' => route('devices.delete-employee'),
             'uploadPhoto' => route('employee.upload-photo'),
+            'fingerprints' => route('employee.fingerprints'),
             'csrfToken' => csrf_token(),
         ];
     @endphp

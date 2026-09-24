@@ -86,7 +86,15 @@ Before you begin, ensure you have the following installed on your system:
     php artisan storage:link
     ```
 
-9. **Serve the application**
+9. Install NODE JS
+
+10. **build scripts**
+
+    ```bash
+    npm run build
+    ```
+
+11. **Serve the application**
     ```bash
     php artisan serve
     ```
