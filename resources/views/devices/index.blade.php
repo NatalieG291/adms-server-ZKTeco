@@ -155,7 +155,7 @@
                 </thead>
                 <tbody>
                     @foreach ($log as $d)
-                        <tr onclick="document.getElementById('radioNoLabel{{ $d->id }}').checked = true; setCurrentSN('{{ $d->id }}', '{{ $d->descripcion }}')" style="cursor: pointer;">
+                        <tr data-device-id="{{ $d->id }}" onclick="document.getElementById('radioNoLabel{{ $d->id }}').checked = true; setCurrentSN('{{ $d->id }}', '{{ $d->descripcion }}')" style="cursor: pointer;">
                             @auth
                             @canany(['device-reboot', 'device-clear-admin', 'device-clear-data', 'device-clear-log', 'device-capture-setting', 'device-punch-period', 'device-remote-enroll', 'device-download-data', 'device-upload-data', 'device-delete-employee', 'device-change-config'])
                             <td>
@@ -165,10 +165,13 @@
                             </td>
                             @endcan
                             @endauth
-                            <td class="align-middle">
+                            <td class="align-middle" data-state-for="{{ $d->id }}">
                                 @switch(strtolower($d->state ?? ''))
                                     @case('offline')
                                         <img src="{{ asset('storage/state3.gif') }}" alt="Offline" title="Offline" style="width:15px;height:15px;">
+                                        @break
+                                    @case('idle')
+                                        <img src="{{ asset('storage/state0.png') }}" alt="Idle" title="Idle" style="width:15px;height:15px;">
                                         @break
                                     @case('ok')
                                         <img src="{{ asset('storage/state1.gif') }}" alt="Online" title="Online" style="width:15px;height:15px;">
@@ -178,6 +181,9 @@
                                         @break
                                     @case('downloading')
                                         <img src="{{ asset('storage/state2.gif') }}" alt="syncDown" title="syncDowm" style="width:15px;height:15px;">
+                                        @break
+                                    @case('processing')
+                                        <img src="{{ asset('storage/state1.gif') }}" alt="Processing" title="Processing" style="width:15px;height:15px;" class="blink">
                                         @break
                                     @default
                                         {{ $d->state }}
@@ -197,7 +203,7 @@
                             <td>{{ $d->fp_count }}</td>
                             <td>{{ $d->face_count }}</td>
                             @endauth
-                            <td>{{ $d->online }}</td>
+                            <td data-online-for="{{ $d->id }}">{{ $d->online }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -320,24 +326,50 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteDataLabel">Eliminar empleados del lector</h5>
+                    <h5 class="modal-title" id="deleteDataLabel">Eliminar biometricos de empleados del lector</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="dropdown-container border-bottom" id="employeeSelectDelete">
+                    <div class="mb-3 ms-3 form-check form-check-inline ">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="bajas" value="option1" onChange="document.getElementById('employeeSelectDelete').classList.add('visually-hidden'); document.getElementById('deleteDateContainer').classList.remove('visually-hidden');" checked>
+                        <label class="form-check-label" for="bajas">Bajas</label>
+                    </div>
+                    <div class="mb-3 form-check form-check-inline ">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="especifico" value="option2" onChange="document.getElementById('employeeSelectDelete').classList.remove('visually-hidden'); document.getElementById('deleteDateContainer').classList.add('visually-hidden');">
+                        <label class="form-check-label" for="especifico">Empleado específico</label>
+                    </div>
+                    <div class="mb-3 form-check form-check-inline ">
+                        <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inexistentes" value="option3" onChange="document.getElementById('employeeSelectDelete').classList.add('visually-hidden'); document.getElementById('deleteDateContainer').classList.add('visually-hidden');">
+                        <label class="form-check-label" for="inexistentes">inexistentes</label>
+                    </div>
+
+                    <div class="row g-3 ms-3 border-bottom pb-2" id="deleteDateContainer">
+                        <div class="col-6">
+                            <label for="deleteDate" class="form-label">Fecha de baja</label>
+                            <input type="date" class="form-control" id="deleteDate">
+                        </div>
+                    </div>
+
+                    <!-- Empleados vigentes -->
+                    <div class="dropdown-container border-bottom visually-hidden" id="employeeSelectDelete">
                         <div class="dropdown-button noselect w-100">
                             <div class="dropdown-label">Empleados</div>
                             <div class="dropdown-quantity">(<span class="quantity"></span>)</div>
-				    </div>
+				        </div>
                         <div class="dropdown-list" style="">
                             <input type="search" placeholder="Buscar empleados" class="dropdown-search">
                             <ul class="dropdown-list">
                             </ul>
                         </div>
 					</div>
+                    <!--  -->
+                    <div class="mt-3 ms-3 form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="allDevices" id="allDevices">
+                        <label class="form-check-label" for="allDevices">Aplicar en todos los lectores</label>
+                    </div>
                     <div class="mb-3 mt-3 ms-3 form-check form-check-inline">
                         <input class="form-check-input" type="checkbox" name="deleteEmployees" id="deleteEmployees">
-                        <label class="form-check-label" for="deleteEmployees">Eliminar empleados de la base de datos</label>
+                        <label class="form-check-label" for="deleteEmployees">Eliminar huellas y rostros de la base de datos</label>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -560,4 +592,163 @@
             </div>
         </div>
     </div>
+
+    <script>
+        (() => {
+            const refreshInterval = 15000;
+            const stateIcons = {
+                offline: { src: @json(asset('storage/state3.gif')), alt: 'Offline', title: 'Offline' },
+                idle: { src: @json(asset('storage/state0.png')), alt: 'Idle', title: 'Idle' },
+                ok: { src: @json(asset('storage/state1.gif')), alt: 'Online', title: 'Online' },
+                uploading: { src: @json(asset('storage/state4.gif')), alt: 'syncUp', title: 'syncUp' },
+                downloading: { src: @json(asset('storage/state2.gif')), alt: 'syncDown', title: 'syncDown' },
+                processing: { src: @json(asset('storage/state1.gif')), alt: 'Processing', title: 'Processing', className: 'blink' }
+            };
+
+            function renderDeviceState(cell, state) {
+                const normalizedState = String(state || '').toLowerCase();
+                const icon = stateIcons[normalizedState];
+
+                cell.replaceChildren();
+                if (!icon) {
+                    cell.textContent = state || '';
+                    return;
+                }
+
+                const image = document.createElement('img');
+                image.src = icon.src;
+                image.alt = icon.alt;
+                image.title = icon.title;
+                image.width = 15;
+                image.height = 15;
+                if (icon.className) {
+                    image.className = icon.className;
+                }
+                cell.appendChild(image);
+            }
+
+            async function refreshDeviceStates() {
+                if (document.hidden) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch('{{ route('devices.index') }}', {
+                        headers: { 'Accept': 'application/json' },
+                        cache: 'no-store'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('No se pudo consultar el estado de los dispositivos');
+                    }
+
+                    const payload = await response.json();
+                    payload.devices.forEach((device) => {
+                        const stateCell = document.querySelector(`[data-state-for="${device.id}"]`);
+                        const onlineCell = document.querySelector(`[data-online-for="${device.id}"]`);
+
+                        if (stateCell) {
+                            renderDeviceState(stateCell, device.state);
+                        }
+                        if (onlineCell) {
+                            onlineCell.textContent = device.online || '';
+                        }
+                    });
+                } catch (error) {
+                    console.error('Actualización de dispositivos:', error);
+                }
+            }
+
+            window.setInterval(refreshDeviceStates, refreshInterval);
+        })();
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+
+            document.querySelectorAll(".dropdown-container").forEach(container => {
+
+                container.addEventListener("click", e => {
+                    if (e.target.classList.contains("dropdown-button")) {
+                        const list = container.querySelector(".dropdown-list");
+                        list.classList.toggle("show");
+                    }
+                });
+
+                container.addEventListener("input", e => {
+                    if (e.target.classList.contains("dropdown-search")) {
+                        const search = e.target.value.toLowerCase();
+                        const items = container.querySelectorAll(".dropdown-list li");
+
+                        items.forEach(li => {
+                            const text = li.textContent.toLowerCase();
+                            li.style.display = text.includes(search) ? "" : "none";
+                        });
+                    }
+                });
+
+                container.addEventListener("change", e => {
+                    if (e.target.type === "checkbox") {
+                        const checked = container.querySelectorAll('input[type="checkbox"]:checked').length;
+                        container.querySelector(".quantity").textContent = checked || "Any";
+                    }
+                });
+
+            });
+
+            function createListItem(emp) {
+                const li = document.createElement("li");
+                const capName = `${emp.employee_id} - ${emp.name}`;
+
+                li.innerHTML = `
+                    <label class="checkbox-wrap">
+                        <input name="${emp.employee_id}" type="checkbox">
+                        <span>${capName}</span>
+                        <span class="checkmark"></span>
+                    </label>
+                `;
+                return li;
+            }
+
+            const allEmployeeLists = document.querySelectorAll(".dropdown-list ul");
+
+            fetch("{{ route('employee.list-employees') }}", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                const empData = data.employees;
+
+                allEmployeeLists.forEach(ul => {
+                    empData.forEach(emp => {
+                        ul.appendChild(createListItem(emp).cloneNode(true));
+                    });
+                });
+            });
+        });
+    </script>
+    @php
+        $deviceRoutes = [
+            'getDeviceConfig' => route('devices.get-device-config'),
+            'upload' => route('devices.upload'),
+            'download' => route('devices.download'),
+            'deleteData' => route('devices.delete-data'),
+            'enroll' => route('devices.enroll'),
+            'setDuplicateTime' => route('devices.set-duplicate-time'),
+            'restart' => route('devices.restart'),
+            'clearAdmin' => route('devices.clear-admin'),
+            'clearLog' => route('devices.clear-log'),
+            'deleteEmployee' => route('devices.delete-employee'),
+            'saveDeviceConfig' => route('devices.save-device-config'),
+            'setPhotoConfig' => route('devices.set-photo-config'),
+            'csrfToken' => csrf_token(),
+        ];
+    @endphp
+    <script>
+        window.deviceRoutes = @json($deviceRoutes);
+    </script>
+    @vite('resources/js/devices.js')
 @endsection

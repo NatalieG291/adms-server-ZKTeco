@@ -17,33 +17,31 @@ class DeviceController extends Controller
     public function index(Request $request)
     {
         $data['lable'] = "Devices";
-        // $data['log'] = DB::table('devices')
-        //     ->select('id','no_sn','descripcion','online', 'model', 'ip_address', 'transaction_count', 'user_count', 'fp_count', 'face_count', 'photo_count')
-        //     ->leftjoin('giro.supervisor_giro.lectores_adms',
-        //         DB::raw("devices.no_sn COLLATE SQL_Latin1_General_CP1_CI_AS"),
-        //         '=',
-        //         DB::raw("lectores_adms.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS")
-        //     )
 
-        //     ->orderBy('online', 'DESC')->get();
-
-        $sql = "SELECT DEVICES.ID AS id, NO_SN AS no_sn, DESCRIPCION AS descripcion, ONLINE AS online, MODEL AS model, IP_ADDRESS AS ip_address, TRANSACTION_COUNT AS transaction_count, USER_COUNT AS user_count, FP_COUNT AS fp_count, FACE_COUNT AS face_count, PHOTO_COUNT AS photo_count, 
+        $sql = "SELECT DEVICES.ID AS id, NO_SN AS no_sn, DESCRIPCION AS descripcion, CONVERT(DATETIME2(0), ONLINE) AS online, MODEL AS model, IP_ADDRESS AS ip_address, TRANSACTION_COUNT AS transaction_count, USER_COUNT AS user_count, FP_COUNT AS fp_count, FACE_COUNT AS face_count, PHOTO_COUNT AS photo_count, 
                 case 
                     when DATEDIFF(MINUTE, online, GETDATE()) > 10 THEN 'OFFLINE'
+                    when DATEDIFF(MINUTE, online, GETDATE()) >= 5 THEN 'IDLE'
                     when command IS NULL THEN 'OK' 
                     when command like '%DATA UPDATE%' THEN 'UPLOADING'
                     when command like '%DATA QUERY%' THEN 'DOWNLOADING'
+                    ELSE 'PROCESSING'
                 END AS state,
                 C.C_ID AS c_id
                 FROM DEVICES
-                LEFT JOIN GIRO.Supervisor_giro.Lectores_adms ON DEVICES.NO_SN COLLATE SQL_Latin1_General_CP1_CI_AS = lectores_adms.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS
+                LEFT JOIN " . env('DB_DATABASE_GIRO') . ".Supervisor_giro.Lectores_adms ON DEVICES.NO_SN COLLATE SQL_Latin1_General_CP1_CI_AS = lectores_adms.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS
                 LEFT JOIN (
                     SELECT ID AS C_ID, DEVICE_ID, COMMAND, COMPLETED_AT, FAILED_AT, CREATED_AT, ROW_NUMBER() OVER (PARTITION BY DEVICE_ID ORDER BY CREATED_AT) AS ID 
                     FROM DEVICE_COMMANDS 
                     WHERE completed_at IS NULL and FAILED_AT IS NULL) C ON DEVICES.id = C.device_id AND C.ID = 1
                 GROUP BY DEVICES.ID, NO_SN, DESCRIPCION, ONLINE, MODEL, IP_ADDRESS, TRANSACTION_COUNT, USER_COUNT, FP_COUNT, FACE_COUNT, PHOTO_COUNT, DEVICE_ID, C.C_ID, command
-                order by online desc";
+                order by id asc";
         $data['log'] = DB::select($sql);
+
+        if ($request->expectsJson()) {
+            return response()->json(['devices' => $data['log']]);
+        }
+
         return view('devices.index',$data);
     }
 
@@ -297,15 +295,40 @@ class DeviceController extends Controller
         $auditData = [
             'user_id' => auth()->check() ? auth()->id() : null,
             'action' => 'Delete Employee',
-            'description' => 'Device SN: ' . $request->input('sn') . ', Employee IDs: ' . implode(',', $request->input('empids', [])) . ', Delete from Database: ' . ($request->input('deleteDatabase') ? 'Yes' : 'No') . ', Devices: ' . implode(',', array_map(function($d) { return $d['id']; }, $request->input('devices', []))),
+            'description' => 'Device SN: ' . ($request->input('todos') == 1 ? $request->input('sn') : 'All') . ', Employee IDs: ' . ($request->input('baja') == 1 ? 'Bajas' : ($request->input('especifico') == 1 ? implode(',', $request->input('empids', [])) : ($request->input('inexistente') == 1 ? 'Inexistentes' : implode(',', $request->input('empids', []))))) . ', Delete from Database: ' . ($request->input('deleteDatabase') ? 'Yes' : 'No') . ', Devices: ' . implode(',', array_map(function($d) { return $d['id']; }, $request->input('devices', []))),
             'created_at' => now(),
         ];
         DB::table('audit_logs')->insert($auditData);
 
         $sn = $request->input('sn');
         $employees = $request->input('empids');
+        $baja = $request->input('baja');
+        $fbaja = $request->input('fbaja');
+        $especifico = $request->input('especifico');
+        $inexistente = $request->input('inexistente');
+        if($request->input('todos')){
+            $sn = null;
+            $device = 'all';
+        }
+        else {
+            $devices = $request->input('devices');
+        }
         $deleteDatabase = $request->input('deleteDatabase');
-        $devices = $request->input('devices');
+
+        if($baja){
+            $employees = DB::connection('cliente')->table('Supervisor_giro.EMPSDO')
+                        ->select('CLAVE')
+                        ->where('TIPO', '=', 'B')
+                        ->where('FECHA', '<=', $fbaja)
+                        ->where('FECHA_SALIDA', '>=', $fbaja)
+                        ->where('FECHA', '>=', DB::raw("DATEADD(YEAR, -1, GETDATE())"))
+                        ->pluck('CLAVE');
+        }
+        if($inexistente){
+            $sql = "SELECT e.employee_id FROM EMPLOYEES e WHERE CAST(e.employee_id as varchar) NOT IN (SELECT '" . env('PREFIJO_EMPRESA_CLIENTE') . "'+CLAVE FROM " . env('DB_DATABASE_CLIENTE') . ".Supervisor_giro.empprin)";
+            $employees = collect(DB::select($sql))->pluck('employee_id');
+        }
+
         if($deleteDatabase){
             DB::table('employees')->whereIn('employee_id', $employees)->delete();
             DB::table('fingerprints')->whereIn('pin', $employees)->delete();
@@ -321,7 +344,7 @@ class DeviceController extends Controller
                 DB::table('device_commands')->insert($q);
             }
         }
-        else {
+        else if($baja == 0 && $especifico == 0 && $inexistente == 0){
             foreach($devices as $device){
                 if($device['id'] == "all") {
                     $device = $device['id'];
@@ -343,6 +366,20 @@ class DeviceController extends Controller
                     foreach($employees as $pin){
                         $q['device_id'] = $device['id'];
                         $q['command'] = 'DATA DELETE USERINFO PIN='.$employees[0];
+                        $q['data'] = '{}';
+                        $q['created_at'] = now();
+                        DB::table('device_commands')->insert($q);
+                    }
+                }
+            }
+        }
+        else {
+            if($device == "all") {
+                $devices = DB::table('devices')->pluck('id');
+                foreach($devices as $device) {
+                    foreach($employees as $pin){
+                        $q['device_id'] = $device;
+                        $q['command'] = 'DATA DELETE USERINFO PIN='.$pin;
                         $q['data'] = '{}';
                         $q['created_at'] = now();
                         DB::table('device_commands')->insert($q);
@@ -534,7 +571,7 @@ class DeviceController extends Controller
         $employeeIds = $request->get('employeeid', []);
         $deviceIds = $request->get('deviceid', []);
 
-        $selectCols = "a.id, descripcion, e.employee_id, e.name, a.timestamp, 
+        $selectCols = "a.id, descripcion, a.employee_id, e.name, a.timestamp, 
             CASE 
                 WHEN status1 = 1 THEN 'Huella' 
                 WHEN status1 = 3 THEN 'Contraseña'
@@ -590,7 +627,7 @@ class DeviceController extends Controller
         }
 
         if ($request->get('export')) {
-            $sqlExport = "SELECT l.descripcion, e.employee_id, e.name, a.timestamp,
+            $sqlExport = "SELECT l.descripcion, a.employee_id, e.name, a.timestamp,
             CASE 
                 WHEN status1 = 1 THEN 'Huella' 
                 WHEN status1 = 3 THEN 'Contraseña'
@@ -612,8 +649,12 @@ class DeviceController extends Controller
                 WHEN status1 = 19 THEN 'Rostro, huella y tarjeta'
                 WHEN status1 = 20 THEN 'Rostro, huella y contraseña'
                 ELSE CAST(STATUS1 AS VARCHAR) END AS status1 
-            FROM attendances a INNER JOIN employees e ON CAST(a.employee_id AS NVARCHAR) = e.employee_id LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . " ORDER BY a.id DESC";
-            $rows = DB::select($sqlExport, $bindings);
+            FROM attendances a LEFT JOIN employees e ON CAST(a.employee_id AS NVARCHAR) = e.employee_id LEFT JOIN " . env('DB_DATABASE_GIRO') . ".Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . " ORDER BY a.timestamp DESC";
+            try {
+                $rows = DB::cursor($sqlExport, $bindings);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Error al exportar los datos de asistencia: ' . $e->getMessage()], 500);
+            }
             $filename = 'attendances_' . now()->format('Ymd_His') . '.csv';
             $headers = [
                 'Content-Type' => 'text/csv',
@@ -643,14 +684,9 @@ class DeviceController extends Controller
         $start = ($page - 1) * $perPage;
         $end = $start + $perPage;
 
-        $sql = "SELECT id, descripcion, employee_id, name, timestamp, status1 FROM (SELECT $selectCols, ROW_NUMBER() OVER (ORDER BY a.id DESC) AS rn 
-        FROM attendances a INNER JOIN employees e ON CAST(a.employee_id AS NVARCHAR) = e.employee_id LEFT JOIN GIRO.Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY id DESC";
+        $sql = "SELECT id, descripcion, employee_id, name, timestamp, status1 FROM (SELECT $selectCols, ROW_NUMBER() OVER (ORDER BY a.timestamp DESC) AS rn 
+        FROM attendances a LEFT JOIN employees e ON CAST(a.employee_id AS NVARCHAR) = e.employee_id LEFT JOIN " . env('DB_DATABASE_GIRO') . ".Supervisor_giro.Lectores_adms l ON a.SN COLLATE SQL_Latin1_General_CP1_CI_AS = l.NUMERO_SERIE COLLATE SQL_Latin1_General_CP1_CI_AS" . ($whereSql ? ' ' . $whereSql : '') . ") AS t WHERE rn BETWEEN ? AND ? ORDER BY timestamp DESC";
 
-        // dd(DB::select($sql, array_merge($bindings, [$start + 1, $end])));
-        // DB::listen(function ($query) {
-        //     dump($query->sql);
-        //     dump($query->bindings);
-        // });
         $rows = DB::select($sql, array_merge($bindings, [$start + 1, $end]));
 
         $countSql = "SELECT COUNT(*) AS cnt FROM attendances a " . ($whereSql ? ' ' . $whereSql : '');
@@ -662,9 +698,12 @@ class DeviceController extends Controller
             'query' => request()->query(),
         ]);
 
-        $employees = DB::table('employees')
-            ->select('employee_id', 'name')
-            ->get();
+        $sqlVig = "SELECT employee_id, name from employees 
+                    where CAST(employee_id AS VARCHAR) IN 
+                        (SELECT '" . env('PREFIJO_EMPRESA_CLIENTE') . "'+CLAVE 
+                        FROM " . env('DB_DATABASE_CLIENTE') . ".Supervisor_giro.EMPSDO 
+                        WHERE TIPO <> 'B' AND FECHA <= ? AND FECHA_SALIDA >= ?)";
+        $employees = DB::select($sqlVig, [$endDate ? $endDate : now(), $startDate ? $startDate : now()]);
 
         $devices = DB::table('devices')
             ->select('id', 'descripcion')
@@ -702,57 +741,4 @@ class DeviceController extends Controller
         ]);
         return view('devices.attphoto', compact('photos'));
     }
-
-    // // Menampilkan form tambah device
-    // public function create()
-    // {
-    //     return view('devices.create');
-    // }
-
-    // // Menyimpan device baru ke database
-    // public function store(Request $request)
-    // {
-    //     $device = new Device();
-    //     $device->nama = $request->input('nama');
-    //     $device->no_sn = $request->input('no_sn');
-    //     $device->lokasi = $request->input('lokasi');
-    //     $device->save();
-
-    //     return redirect()->route('devices.index')->with('success', 'Device berhasil ditambahkan!');
-    // }
-
-    // // Menampilkan detail device
-    // public function show($id)
-    // {
-    //     $device = Device::find($id);
-    //     return view('devices.show', compact('device'));
-    // }
-
-    // // Menampilkan form edit device
-    // public function edit($id)
-    // {
-    //     $device = Device::find($id);
-    //     return view('devices.edit', compact('device'));
-    // }
-
-    // // Mengupdate device ke database
-    // public function update(Request $request, $id)
-    // {
-    //     $device = Device::find($id);
-    //     $device->nama = $request->input('nama');
-    //     $device->no_sn = $request->input('no_sn');
-    //     $device->lokasi = $request->input('lokasi');
-    //     $device->save();
-
-    //     return redirect()->route('devices.index')->with('success', 'Device berhasil diupdate!');
-    // }
-
-    // // Menghapus device dari database
-    // public function destroy($id)
-    // {
-    //     $device = Device::find($id);
-    //     $device->delete();
-
-    //     return redirect()->route('devices.index')->with('success', 'Device berhasil dihapus!');
-    // }
 }
