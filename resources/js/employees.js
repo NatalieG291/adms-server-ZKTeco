@@ -52,7 +52,7 @@ function OpenEnrollEmployeeModal() {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "X-CSRF-TOKEN": "employeeRoutes.csrfToken",
+            "X-CSRF-TOKEN": employeeRoutes.csrfToken,
         },
         body: JSON.stringify({ pin: currentEmployee }),
     })
