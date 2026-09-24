@@ -144,9 +144,12 @@ class EmployeeController extends Controller
 
     public function ListEmployees(Request $request)
     {
-        $employees = DB::table('employees')
-            ->select('employee_id', 'name')
-            ->get();
+        $sqlVig = "SELECT employee_id, name from employees 
+                    where CAST(employee_id AS VARCHAR) IN 
+                        (SELECT '" . env('PREFIJO_EMPRESA_CLIENTE') . "'+CLAVE 
+                        FROM " . env('DB_DATABASE_CLIENTE') . ".Supervisor_giro.EMPSDO 
+                        WHERE TIPO <> 'B' AND FECHA <= ? AND FECHA_SALIDA >= ?)";
+        $employees = DB::select($sqlVig, [now(),now()]);
 
         return response()->json(['employees' => $employees]);
     }

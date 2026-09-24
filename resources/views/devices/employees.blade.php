@@ -147,7 +147,7 @@
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label" for="send">Enviar a dispositivos</label>
+                                    <label class="form-label" for="send">Enviar cambios a dispositivos</label>
                                     <div class="input-group mb-3">
                                         <div class="input-group-text">
                                             <input class="form-check-input" type="checkbox" id="send" name="sendToDevices">
@@ -277,4 +277,17 @@
             </div>
         </div>
     </div>
+    @php
+        $employeeRoutes = [
+            'EditEmployeeData' => route('employee.EditEmployeeData'),
+            'enroll' => route('devices.enroll'),
+            'deleteEmployee' => route('devices.delete-employee'),
+            'uploadPhoto' => route('employee.upload-photo'),
+            'csrfToken' => csrf_token(),
+        ];
+    @endphp
+    <script>
+        const employeeRoutes = @json($employeeRoutes);
+    </script>
+    @vite(['resources/js/employees.js'])
 @endsection

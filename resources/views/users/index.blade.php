@@ -95,5 +95,85 @@
             </div>
         </div>
     </div>
+    <script> 
+        document.addEventListener("DOMContentLoaded", () => {
 
+            document.querySelectorAll(".dropdown-container").forEach(container => {
+
+                container.addEventListener("click", e => {
+                    if (e.target.classList.contains("dropdown-button")) {
+                        const list = container.querySelector(".dropdown-list-permissions");
+                        list.classList.toggle("show");
+                    }
+                });
+
+                container.addEventListener("input", e => {
+                    if (e.target.classList.contains("dropdown-search")) {
+                        const search = e.target.value.toLowerCase();
+                        const items = container.querySelectorAll(".dropdown-list-permissions li");
+
+                        items.forEach(li => {
+                            const text = li.textContent.toLowerCase();
+                            li.style.display = text.includes(search) ? "" : "none";
+                        });
+                    }
+                });
+
+                container.addEventListener("change", e => {
+                    if (e.target.type === "checkbox") {
+                        const checked = container.querySelectorAll('input[type="checkbox"]:checked').length;
+                        container.querySelector(".quantity").textContent = checked || "Any";
+                    }
+                });
+
+            });
+
+            function createListItem(usr) {
+                const li = document.createElement("li");
+                const capName = `${usr.description}`;
+
+                li.innerHTML = `
+                    <label class="checkbox-wrap">
+                        <input name="${usr.name}" type="checkbox">
+                        <span>${capName}</span>
+                        <span class="checkmark"></span>
+                    </label>
+                `;
+                return li;
+            }
+
+            const allPermissionsLists = document.querySelectorAll(".dropdown-list-permissions ul");
+
+            fetch("{{ route('users.get-permissions') }}", {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                const usrData = data.permissions;
+
+                allPermissionsLists.forEach(ul => {
+                    usrData.forEach(usr => {
+                        ul.appendChild(createListItem(usr));
+                    });
+                });
+            });
+        });
+    </script>
+    @php
+        $permissionsRoutes = [
+            'getPermissions' => route('users.get-permissions'),
+            'getUserPermissions' => route('users.get-user-permissions'),
+            'newUser' => route('users.new-user'),
+            'dropUser' => route('users.drop-user'),
+            'csrfToken' => csrf_token(),
+        ];
+    @endphp
+    <script>
+        window.usersRoutes = @json($permissionsRoutes);
+    </script>
+    @vite(['resources/js/users.js'])
 @endsection

@@ -94,4 +94,10 @@
 
 
 </div>
+<script>
+    $(document).ready(function() {
+        $('#employeeid').select2();
+        $('#device_id').select2();
+    });
+</script>
 @endsection
