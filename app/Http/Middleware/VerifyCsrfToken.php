@@ -17,5 +17,6 @@ class VerifyCsrfToken extends Middleware
         'iclock/getrequest',
         'iclock/devicecmd',
         'iclock/fdata',
+        'iclock/registry',
     ];
 }
