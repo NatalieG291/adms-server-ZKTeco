@@ -30,6 +30,50 @@ function setCurrentEmployee(
     }
 }
 
+function OpenViewEmployeeReadersModal() {
+    $("#loader-lu").addClass("is-active");
+    fetch(employeeRoutes.employeeReaders, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": employeeRoutes.csrfToken,
+        },
+        body: JSON.stringify({ empid: currentEmployee }),
+    })
+        .then((r) => r.json())
+        .then((data) => {
+            $("#loader-lu").removeClass("is-active");
+            const readers = data.readers;
+            const readersList = document.getElementById("employeeReadersList");
+            readersList.innerHTML = "";
+
+            readers.forEach((reader) => {
+                const readerItem = document.createElement("div");
+                readerItem.classList.add("list-group-item");
+                readerItem.textContent = reader.name;
+                readersList.appendChild(readerItem);
+            });
+        })
+        .catch((err) => {
+            console.error(err);
+            Swal.fire(
+                "Error al obtener los lectores del empleado",
+                "",
+                "error",
+            );
+            $("#loader-lu").removeClass("is-active");
+        });
+    document.querySelector(
+        "#viewEmployeeReadersModal .modal-title",
+    ).textContent =
+        "Lectores del empleado | " + currentEmployee.substring(1, 10);
+    var modal = new bootstrap.Modal(
+        document.getElementById("viewEmployeeReadersModal"),
+        {},
+    );
+    modal.show();
+}
+
 function OpenEnrollEmployeeModal() {
     $("#loader-lu").addClass("is-active");
     var fingers = [
@@ -490,4 +534,5 @@ Object.assign(window, {
     DeleteEmployeeKardex,
     performEmployeeDeletionKardex,
     uploadEmployeePhoto,
+    OpenViewEmployeeReadersModal,
 });

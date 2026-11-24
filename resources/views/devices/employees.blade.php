@@ -39,6 +39,7 @@
                         <th class="d-none d-xl-table-cell">Tarjeta</th>
                         <th class="d-none d-xl-table-cell">Tipo de verificación</th>
                         <th>Ultima actualizacion</th>
+                        <!-- <th class="d-none d-xl-table-cell">Registrado en</th> -->
                     </tr>
                 </thead>
                 <tbody>
@@ -55,6 +56,9 @@
                             <td class="d-none d-xl-table-cell">{{ $d->card }}</td>
                             <td class="d-none d-xl-table-cell">{{ $d->verify }}</td>
                             <td>{{ $d->updated_at }}</td>
+                            <!-- <td class="d-none d-xl-table-cell">
+                                <button class="btn btn-sm btn-outline-primary" onclick="setCurrentEmployee('{{ $d->employee_id }}', '{{ $d->name }}', '{{ $d->pri }}', '{{ $d->pri_id }}', '{{ $d->passwd }}', '{{ $d->card }}', '{{ $d->verify_id }}', '{{ $d->total }}'); OpenViewEmployeeReadersModal()">Ver lectores</button>
+                            </td> -->
                         </tr>
                     @endforeach
                 </tbody>
@@ -277,6 +281,33 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="ViewEmployeeReadersModal" tabindex="-1" aria-labelledby="ViewEmployeeReadersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ViewEmployeeReadersModalLabel">Lectores del empleado</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered" id="employeeReadersTable">
+                        <thead>
+                            <tr>
+                                <th>Dispositivo</th>
+                                <th>Huellas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Aquí se llenará dinámicamente con JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
     @php
         $employeeRoutes = [
             'EditEmployeeData' => route('employee.EditEmployeeData'),
@@ -284,6 +315,7 @@
             'deleteEmployee' => route('devices.delete-employee'),
             'uploadPhoto' => route('employee.upload-photo'),
             'fingerprints' => route('employee.fingerprints'),
+            'employeeReaders' => route('employee.employee-readers'),
             'csrfToken' => csrf_token(),
         ];
     @endphp

@@ -154,6 +154,17 @@ class EmployeeController extends Controller
         return response()->json(['employees' => $employees]);
     }
 
+    public function EmployeeReaders(Request $request)
+    {
+        $employeeId = $request->input('empid');
+        $readers = DB::table('fingerprints')
+            ->select('fid', 'device_id', 'version')
+            ->where('pin', $employeeId)
+            ->get();
+
+        return response()->json(['readers' => $readers]);
+    }
+
     public function EditEmployeeData(Request $request)
     {
         $auditData = [
